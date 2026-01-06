@@ -1,4 +1,4 @@
-package com.umc_9th.sleepinghero.domain.test.exception.code;
+package com.umc_9th.sleepinghero.domain.test.exception;
 
 import com.umc_9th.sleepinghero.global.apiPayload.code.BaseErrorCode;
 import lombok.AllArgsConstructor;
@@ -9,11 +9,10 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum TestErrorCode implements BaseErrorCode {
 
-    // For test
-    TEST_EXCEPTION(HttpStatus.BAD_REQUEST, "TEST400_1", "이거는 테스트"),
-    ;
+    GENERAL_EXCEPTION(HttpStatus.BAD_REQUEST, "TEST400_1", "이거는 테스트");
 
     private final HttpStatus status;
     private final String code;
     private final String message;
+
 }

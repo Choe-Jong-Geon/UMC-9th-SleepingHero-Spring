@@ -1,8 +1,7 @@
-package com.umc_9th.sleepinghero.domain.test.service.query;
+package com.umc_9th.sleepinghero.domain.test.service;
 
-
-import com.umc_9th.sleepinghero.domain.test.exception.TestException;
-import com.umc_9th.sleepinghero.domain.test.exception.code.TestErrorCode;
+import com.umc_9th.sleepinghero.domain.test.exception.TestErrorCode;
+import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +12,7 @@ public class TestQueryServiceImpl implements TestQueryService {
     @Override
     public void checkFlag(Long flag){
         if (flag == 1){
-            throw new TestException(TestErrorCode.TEST_EXCEPTION);
+            throw new GeneralException(TestErrorCode.GENERAL_EXCEPTION);
         }
     }}
 

@@ -1,10 +1,9 @@
-package com.umc_9th.sleepinghero.global.apiPayload.handler;
+package com.umc_9th.sleepinghero.global.apiPayload.exception;
 
 
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.code.BaseErrorCode;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralErrorCode;
-import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

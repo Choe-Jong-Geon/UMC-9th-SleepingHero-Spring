@@ -12,6 +12,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final String[] swaggerUris = {
+            "/swagger-ui/**", "/swagger-ui.html",
+            "/api-docs/**", "/swagger-resources/**",
+            "/webjars/**", "/test/**"
+    };
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -21,8 +27,8 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // Swagger 관련만 일단 허용
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
-                        .anyRequest().permitAll()
+                        .requestMatchers(swaggerUris).permitAll()
+                        .anyRequest().authenticated()
                 );
 
         return http.build();
