@@ -1,4 +1,4 @@
-package com.umc_9th.sleepinghero.domain.friend.enums;
+package com.umc_9th.sleepinghero.global.enums;
 
 
 public enum Status {
