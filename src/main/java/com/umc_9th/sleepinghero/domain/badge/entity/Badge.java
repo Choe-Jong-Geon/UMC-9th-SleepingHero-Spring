@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "badge")
+@Table(name = "badges")
 @Builder
 public class Badge {
 

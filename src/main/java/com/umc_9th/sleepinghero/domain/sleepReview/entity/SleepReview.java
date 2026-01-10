@@ -24,6 +24,6 @@ public class SleepReview {
     private String comment;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sleep_record_id", nullable = false)
+    @JoinColumn(name = "sleep_record_id", nullable = false, unique = true)
     private SleepRecord sleepRecord;
 }
