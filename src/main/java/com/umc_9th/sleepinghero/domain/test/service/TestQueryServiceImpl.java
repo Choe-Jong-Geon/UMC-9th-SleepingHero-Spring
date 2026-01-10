@@ -14,5 +14,5 @@ public class TestQueryServiceImpl implements TestQueryService {
         if (flag == 1){
             throw new GeneralException(TestErrorCode.GENERAL_EXCEPTION);
         }
-    }}
-
+    }
+}
