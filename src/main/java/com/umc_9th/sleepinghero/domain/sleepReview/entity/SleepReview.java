@@ -1,2 +1,29 @@
-package com.umc_9th.sleepinghero.domain.sleepReview.entity;public class SleepReview {
+package com.umc_9th.sleepinghero.domain.sleepReview.entity;
+
+import com.umc_9th.sleepinghero.domain.sleepRecord.entity.SleepRecord;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "sleep_reviews")
+@Builder
+public class SleepReview {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private int star;
+
+    private String comment;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sleep_record_id", nullable = false)
+    private SleepRecord sleepRecord;
 }
