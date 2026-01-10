@@ -7,6 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -34,11 +38,20 @@ public class Member extends BaseEntity {
     private Role role = Role.ROLE_USER;
 
     @Column(nullable = false, unique = true, name = "provider_id")
-    private Long providerId;
+    private String providerId;
 
     @Column(nullable = false, name = "tutorial_clear")
-    private boolean tutorialClear;
+    @Builder.Default
+    private boolean tutorialClear = false;
 
     @Column(nullable = false, name = "sleep_status")
-    private boolean sleepStatus;
+    @Builder.Default
+    private boolean sleepStatus = false;
+
+    @CreatedBy
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedBy
+    private LocalDateTime updatedAt;
 }

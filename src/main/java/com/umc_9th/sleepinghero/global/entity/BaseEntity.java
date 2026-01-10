@@ -1,8 +1,6 @@
 package com.umc_9th.sleepinghero.global.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -15,11 +13,8 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class BaseEntity {
 
-    @CreatedBy
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedBy
-    private LocalDateTime updatedAt;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
 }

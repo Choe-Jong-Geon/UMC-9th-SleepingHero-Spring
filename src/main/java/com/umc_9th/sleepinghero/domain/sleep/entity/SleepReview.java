@@ -1,6 +1,5 @@
 package com.umc_9th.sleepinghero.domain.sleep.entity;
 
-import com.umc_9th.sleepinghero.domain.sleepRecord.entity.SleepRecord;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
