@@ -1,4 +1,4 @@
-package com.umc_9th.sleepinghero.domain.sleepRecord.entity;
+package com.umc_9th.sleepinghero.domain.sleep.entity;
 
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import jakarta.persistence.*;

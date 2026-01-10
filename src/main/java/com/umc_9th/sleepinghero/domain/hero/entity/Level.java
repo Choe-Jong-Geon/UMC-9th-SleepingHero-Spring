@@ -1,8 +1,5 @@
 package com.umc_9th.sleepinghero.domain.hero.entity;
 
-package com.umc_9th.sleepinghero.domain.qna.entity;
-
-import com.umc_9th.sleepinghero.domain.qna.entity.Question;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,14 +10,15 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "level_rules")
+@Table(name = "levels")
 @Builder
-public class LevelRule {
+public class Level {
 
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
 
-        private 
+        @Column(nullable = false)
+        private int needExp;
 
 }
