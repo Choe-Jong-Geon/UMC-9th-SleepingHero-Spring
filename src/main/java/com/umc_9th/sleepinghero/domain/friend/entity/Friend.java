@@ -2,6 +2,7 @@ package com.umc_9th.sleepinghero.domain.friend.entity;
 
 
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
+import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import com.umc_9th.sleepinghero.global.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -20,11 +21,7 @@ import lombok.NoArgsConstructor;
         }
 )
 @Builder
-public class Friend {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Friend extends BaseEntity {
 
     @Builder.Default
     @Column(nullable = false)

@@ -2,6 +2,7 @@ package com.umc_9th.sleepinghero.domain.hero.entity;
 
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.skin.entity.Skin;
+import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,11 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(name = "heroes")
 @Builder
-public class Hero {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Hero extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "level_id", nullable = false)

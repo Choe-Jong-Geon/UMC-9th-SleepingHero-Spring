@@ -1,6 +1,7 @@
 package com.umc_9th.sleepinghero.domain.badge.entity;
 
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
+import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,11 +17,7 @@ import lombok.NoArgsConstructor;
                 @UniqueConstraint(columnNames = {"member_id", "badge_id"})
         })
 @Builder
-public class BadgeMember {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class BadgeMember extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)

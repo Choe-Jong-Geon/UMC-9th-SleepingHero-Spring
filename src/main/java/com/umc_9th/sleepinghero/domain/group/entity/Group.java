@@ -1,5 +1,6 @@
 package com.umc_9th.sleepinghero.domain.group.entity;
 
+import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,11 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(name = "groups")
 @Builder
-public class Group {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Group extends BaseEntity {
 
     @Column(nullable = false)
     private String name;

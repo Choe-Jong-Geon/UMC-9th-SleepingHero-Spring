@@ -1,6 +1,7 @@
 package com.umc_9th.sleepinghero.domain.badge.entity;
 
 import com.umc_9th.sleepinghero.domain.badge.enums.BadgeType;
+import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,11 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(name = "badges")
 @Builder
-public class Badge {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Badge extends BaseEntity {
 
     @Column(nullable = false)
     private String name;

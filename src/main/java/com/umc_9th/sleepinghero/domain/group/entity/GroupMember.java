@@ -2,6 +2,7 @@ package com.umc_9th.sleepinghero.domain.group.entity;
 
 import com.umc_9th.sleepinghero.domain.group.enums.GroupRole;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
+import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import com.umc_9th.sleepinghero.global.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -18,11 +19,7 @@ import lombok.NoArgsConstructor;
         @UniqueConstraint(columnNames = {"member_id", "group_id"})
     })
 @Builder
-public class GroupMember {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class GroupMember extends BaseEntity {
 
     @Column(nullable = false, name = "group_role")
     @Enumerated(EnumType.STRING)

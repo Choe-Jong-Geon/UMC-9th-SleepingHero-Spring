@@ -1,6 +1,7 @@
 package com.umc_9th.sleepinghero.domain.sleep.entity;
 
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
+import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,11 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "sleep_records")
 @Builder
-public class SleepRecord {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class SleepRecord extends BaseEntity {
 
     @Column(nullable = false, name = "slept_time")
     private LocalDateTime sleptTime;

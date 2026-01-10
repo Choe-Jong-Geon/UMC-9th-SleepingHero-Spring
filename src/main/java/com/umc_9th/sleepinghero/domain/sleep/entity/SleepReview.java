@@ -1,5 +1,6 @@
 package com.umc_9th.sleepinghero.domain.sleep.entity;
 
+import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,11 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(name = "sleep_reviews")
 @Builder
-public class SleepReview {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class SleepReview extends BaseEntity {
 
     private int star;
 
