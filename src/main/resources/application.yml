@@ -9,6 +9,13 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
 
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
