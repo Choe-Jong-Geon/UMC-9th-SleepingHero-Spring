@@ -3,6 +3,8 @@ package com.umc_9th.sleepinghero.domain.sleep.controller;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepEndResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepRecordResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
+import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
+import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -19,30 +21,35 @@ public class SleepController {
 
 
     @GetMapping
-    public ResponseEntity<Page<SleepRecordResponse>> getSleepRecords(
+    public ResponseEntity<ApiResponse<Page<SleepRecordResponse>>> getSleepRecords(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(Page.empty());
+        return ResponseEntity.ok(ApiResponse.onSuccess(GeneralSuccessCode.OK,Page.empty()));
     }
 
     @GetMapping("/{sleepRecordId}")
-    public ResponseEntity<SleepRecordResponse> getSleepRecord(@PathVariable Long sleepRecordId) {
-        return ResponseEntity.ok(new SleepRecordResponse(
+    public ResponseEntity<ApiResponse<SleepRecordResponse>> getSleepRecord(@PathVariable Long sleepRecordId) {
+
+        SleepRecordResponse dto = new SleepRecordResponse(
                 sleepRecordId, LocalDateTime.now(),LocalDateTime.now(), true
-        ));
+        );
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(GeneralSuccessCode.OK,dto));
     }
 
     @PostMapping
-    public ResponseEntity<SleepStartResponse> startSleep() {
-        return ResponseEntity.ok(
-                new SleepStartResponse(
+    public ResponseEntity<ApiResponse<SleepStartResponse>> startSleep() {
+
+        SleepStartResponse dto = new SleepStartResponse(
                 1L, LocalTime.now(), LocalTime.now()
-                ));
+        );
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(GeneralSuccessCode.OK,dto));
     }
 
     @PostMapping("/{sleepRecordId}")
-    public ResponseEntity<SleepEndResponse> endSleep(@PathVariable Long sleepRecordId) {
+    public ResponseEntity<ApiResponse<SleepEndResponse>> endSleep(@PathVariable Long sleepRecordId) {
 
         LocalDateTime slept = LocalDateTime.now().minusHours(7);
         LocalDateTime woke = LocalDateTime.now();
@@ -51,16 +58,16 @@ public class SleepController {
         int expGained = 10;
         int currentStage = 1;
 
-        return ResponseEntity.ok(
-                new SleepEndResponse(
-                        sleepRecordId,
-                        slept,
-                        woke,
-                        durationMinutes,
-                        expGained,
-                        currentStage
-                )
+        SleepEndResponse dto = new SleepEndResponse(
+                sleepRecordId,
+                slept,
+                woke,
+                durationMinutes,
+                expGained,
+                currentStage
         );
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(GeneralSuccessCode.OK,dto));
     }
 
 
