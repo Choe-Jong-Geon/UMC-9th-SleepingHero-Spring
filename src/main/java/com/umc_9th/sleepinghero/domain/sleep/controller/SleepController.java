@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -34,14 +35,32 @@ public class SleepController {
 
     @PostMapping
     public ResponseEntity<SleepStartResponse> startSleep() {
-        return ResponseEntity.ok(new SleepStartResponse(1L, LocalTime.now(),LocalTime.now()));
+        return ResponseEntity.ok(
+                new SleepStartResponse(
+                1L, LocalTime.now(), LocalTime.now()
+                ));
     }
 
     @PostMapping("/{sleepRecordId}")
     public ResponseEntity<SleepEndResponse> endSleep(@PathVariable Long sleepRecordId) {
-        return ResponseEntity.ok(new SleepEndResponse(
-                sleepRecordId, LocalDateTime.now(),LocalDateTime.now()
-        ));
+
+        LocalDateTime slept = LocalDateTime.now().minusHours(7);
+        LocalDateTime woke = LocalDateTime.now();
+
+        Long durationMinutes = Duration.between(slept, woke).toMinutes();
+        int expGained = 10;
+        int currentStage = 1;
+
+        return ResponseEntity.ok(
+                new SleepEndResponse(
+                        sleepRecordId,
+                        slept,
+                        woke,
+                        durationMinutes,
+                        expGained,
+                        currentStage
+                )
+        );
     }
 
 

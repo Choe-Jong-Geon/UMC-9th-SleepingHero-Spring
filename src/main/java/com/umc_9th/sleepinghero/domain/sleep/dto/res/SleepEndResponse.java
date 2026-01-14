@@ -6,9 +6,9 @@ import java.time.LocalDateTime;
 public record SleepEndResponse (
         Long sleepRecordId,
         LocalDateTime sleptTime,
-        LocalDateTime wokeTime
-//        int durationMinutes,
-//        int expGained,
-//        int currentStage
+        LocalDateTime wokeTime,
+        Long durationMinutes,
+        int expGained,
+        int currentStage
 ){
 }
