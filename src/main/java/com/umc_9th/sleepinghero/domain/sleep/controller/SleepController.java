@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @RestController
 @RequestMapping("/sleep-sessions")
@@ -33,7 +34,7 @@ public class SleepController {
 
     @PostMapping
     public ResponseEntity<SleepStartResponse> startSleep() {
-        return ResponseEntity.ok(new SleepStartResponse(1L));
+        return ResponseEntity.ok(new SleepStartResponse(1L, LocalTime.now(),LocalTime.now()));
     }
 
     @PostMapping("/{sleepRecordId}")
