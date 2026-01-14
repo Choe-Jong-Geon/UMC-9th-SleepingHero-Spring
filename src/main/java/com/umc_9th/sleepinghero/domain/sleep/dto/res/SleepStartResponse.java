@@ -1,10 +1,10 @@
 package com.umc_9th.sleepinghero.domain.sleep.dto.res;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 public record SleepStartResponse(
         Long sleepRecordId,
-        LocalTime sleepTime,
-        LocalTime wakeTime
+        LocalDateTime sleepTime,
+        LocalDateTime wakeTime
 ){
 }

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+
 
 @RestController
 @RequestMapping("/sleep-sessions")
@@ -42,7 +42,7 @@ public class SleepController {
     public ResponseEntity<ApiResponse<SleepStartResponse>> startSleep() {
 
         SleepStartResponse dto = new SleepStartResponse(
-                1L, LocalTime.now(), LocalTime.now()
+                1L,  LocalDateTime.now(), LocalDateTime.now()
         );
 
         return ResponseEntity.ok(ApiResponse.onSuccess(GeneralSuccessCode.OK,dto));
