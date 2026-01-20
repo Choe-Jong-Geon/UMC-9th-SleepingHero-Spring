@@ -3,6 +3,8 @@ package com.umc_9th.sleepinghero.domain.sleep.controller;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepEndResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepRecordResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
+import com.umc_9th.sleepinghero.domain.sleep.service.SleepService;
+import com.umc_9th.sleepinghero.domain.sleep.service.SleepServiceImpl;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
 import lombok.RequiredArgsConstructor;
@@ -19,23 +21,29 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class SleepController {
 
+    private final SleepService sleepService;
+
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<SleepRecordResponse>>> getSleepRecords(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(GeneralSuccessCode.OK,Page.empty()));
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(
+                GeneralSuccessCode.OK,
+                sleepService.getSleepRecords(page,size,1L
+                )));
     }
 
     @GetMapping("/{sleepRecordId}")
-    public ResponseEntity<ApiResponse<SleepRecordResponse>> getSleepRecord(@PathVariable Long sleepRecordId) {
+    public ResponseEntity<ApiResponse<SleepRecordResponse>> getSleepRecord(
+            @PathVariable Long id
+    ) {
 
-        SleepRecordResponse dto = new SleepRecordResponse(
-                sleepRecordId, LocalDateTime.now(),LocalDateTime.now(), true
-        );
-
-        return ResponseEntity.ok(ApiResponse.onSuccess(GeneralSuccessCode.OK,dto));
+        return ResponseEntity.ok(ApiResponse.onSuccess(
+                GeneralSuccessCode.OK,sleepService.getSleepRecord(1L,1L)
+        ));
     }
 
     @PostMapping
