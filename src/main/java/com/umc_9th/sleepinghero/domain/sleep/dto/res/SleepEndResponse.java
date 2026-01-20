@@ -7,6 +7,7 @@ public record SleepEndResponse (
         Long sleepRecordId,
         LocalDateTime sleptTime,
         LocalDateTime wokeTime,
+        Long durationHours,
         Long durationMinutes,
         int expGained,
         int currentStage

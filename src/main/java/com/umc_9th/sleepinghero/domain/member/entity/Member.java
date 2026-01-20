@@ -53,4 +53,10 @@ public class Member extends BaseEntity {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+
+    public void startSleep() { this.sleepStatus = true; }
+    public void endSleep() { this.sleepStatus = false; }
+
 }
+

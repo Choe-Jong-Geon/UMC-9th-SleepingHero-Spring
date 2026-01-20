@@ -30,4 +30,7 @@ public class SleepRecord extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    public void updateWokeTime(LocalDateTime wokeTime) {
+        this.wokeTime = wokeTime;
+    }
 }

@@ -10,7 +10,7 @@ import com.umc_9th.sleepinghero.domain.group.repository.GroupRepository;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
-import com.umc_9th.sleepinghero.domain.sleep.Repository.SleepRecordRepository;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
 
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralErrorCode;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
