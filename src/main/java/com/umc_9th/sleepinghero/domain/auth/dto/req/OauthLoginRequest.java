@@ -1,8 +1,8 @@
 package com.umc_9th.sleepinghero.domain.auth.dto.req;
 
-import lombok.Getter;
+import jakarta.validation.constraints.NotBlank;
 
-@Getter
-public class OauthLoginRequest {
-    private String accessToken;
+public record OauthLoginRequest(
+        @NotBlank String accessToken
+) {
 }

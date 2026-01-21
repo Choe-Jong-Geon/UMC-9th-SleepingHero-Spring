@@ -20,25 +20,29 @@ public class AuthController {
 
     @PostMapping("/naver")
     public ResponseEntity<ApiResponse<LoginResponse>> loginNaver(@RequestBody OauthLoginRequest req) {
-        LoginResult result = oauthLoginService.login(OauthProvider.NAVER, req.getAccessToken());
+        LoginResult result = oauthLoginService.login(OauthProvider.NAVER, req.accessToken());
 
         return ResponseEntity.ok()
-                .header("X-REFRESH-TOKEN", result.getRefreshToken())
+                .header("X-REFRESH-TOKEN", result.refreshToken())
                 .body(ApiResponse.onSuccess(
                         GeneralSuccessCode.OK,
-                        new LoginResponse(result.getMemberId(), result.getNickName(), result.getAccessToken())
+                        new LoginResponse(result.memberId(),
+                                result.nickName(),
+                                result.accessToken())
                 ));
     }
 
     @PostMapping("/kakao")
     public ResponseEntity<ApiResponse<LoginResponse>> loginKakao(@RequestBody OauthLoginRequest req) {
-        LoginResult result = oauthLoginService.login(OauthProvider.KAKAO, req.getAccessToken());
+        LoginResult result = oauthLoginService.login(OauthProvider.KAKAO, req.accessToken());
 
         return ResponseEntity.ok()
-                .header("X-REFRESH-TOKEN", result.getRefreshToken())
+                .header("X-REFRESH-TOKEN", result.refreshToken())
                 .body(ApiResponse.onSuccess(
                         GeneralSuccessCode.OK,
-                        new LoginResponse(result.getMemberId(), result.getNickName(), result.getAccessToken())
+                        new LoginResponse(result.memberId(),
+                                result.nickName(),
+                                result.accessToken())
                 ));
     }
 }
