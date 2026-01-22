@@ -1,5 +1,6 @@
 package com.umc_9th.sleepinghero.domain.member.entity;
 
+import com.umc_9th.sleepinghero.domain.member.enums.OauthProvider;
 import com.umc_9th.sleepinghero.domain.member.enums.Role;
 import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -7,8 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
@@ -26,7 +27,6 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private String nickName;
 
-    @Column
     private String profilePicture;
 
     @Column(nullable = false)
@@ -34,8 +34,12 @@ public class Member extends BaseEntity {
     @Builder.Default
     private Role role = Role.ROLE_USER;
 
-    @Column(nullable = false, name = "provider")
-    private String provider;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private OauthProvider provider;
+
+    @Column(nullable = false, name = "provider_id")
+    private String providerId;
 
     @Column(nullable = false, name = "tutorial_clear")
     @Builder.Default
@@ -45,10 +49,10 @@ public class Member extends BaseEntity {
     @Builder.Default
     private boolean sleepStatus = false;
 
-    @CreatedBy
+    @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @LastModifiedBy
+    @LastModifiedDate
     private LocalDateTime updatedAt;
 }
