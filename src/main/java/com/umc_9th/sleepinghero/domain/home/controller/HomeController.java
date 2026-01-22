@@ -1,6 +1,7 @@
 package com.umc_9th.sleepinghero.domain.home.controller;
 
 import com.umc_9th.sleepinghero.domain.home.dto.res.DashBoardResponse;
+import com.umc_9th.sleepinghero.domain.home.service.HomeService;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.code.BaseSuccessCode;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
@@ -15,17 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class HomeController {
 
+    private final HomeService homeService;
+
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<DashBoardResponse>> dashboard() {
-
-            DashBoardResponse dto = new DashBoardResponse(
-                    1L,
-                    1,
-                    1,
-                    0
-            );
-
-            return ResponseEntity.ok(ApiResponse.onSuccess(GeneralSuccessCode.OK, dto));
+            return ResponseEntity.ok(ApiResponse.onSuccess(
+                    GeneralSuccessCode.OK, homeService.dashboard(1L)
+            ));
         }
-
-    }
+}

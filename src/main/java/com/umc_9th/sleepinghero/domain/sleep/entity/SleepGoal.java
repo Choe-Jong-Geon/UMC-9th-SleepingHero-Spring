@@ -20,6 +20,8 @@ import java.time.LocalTime;
 @Builder
 public class SleepGoal extends BaseEntity {
 
+
+
     @Column(nullable = false, name = "sleep_time")
     private LocalTime sleepTime;
 
@@ -39,7 +41,7 @@ public class SleepGoal extends BaseEntity {
     private int nonSleepStreak = 0;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "member_id", unique = true, nullable = false)
     private Member member;
 
 }
