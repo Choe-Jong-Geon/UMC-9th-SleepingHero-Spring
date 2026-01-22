@@ -1,11 +1,11 @@
 package com.umc_9th.sleepinghero.domain.auth.service;
 import com.umc_9th.sleepinghero.domain.auth.client.OauthClient;
 import com.umc_9th.sleepinghero.domain.auth.dto.res.LoginResult;
+import com.umc_9th.sleepinghero.domain.auth.exception.code.AuthErrorCode;
 import com.umc_9th.sleepinghero.domain.auth.model.OauthProfile;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.enums.OauthProvider;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
-import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralErrorCode;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import com.umc_9th.sleepinghero.global.jwt.JwtTokenProvider;
 import org.springframework.stereotype.Service;
@@ -39,8 +39,12 @@ public class OauthLoginService {
     @Transactional
     public LoginResult login(OauthProvider provider, String oauthAccessToken) {
         OauthClient client = clientMap.get(provider);
-        if (client == null) throw new GeneralException(GeneralErrorCode.BAD_REQUEST);
-
+        if (client == null) {
+            throw new GeneralException(AuthErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED);
+        }
+        if (oauthAccessToken == null) {
+            throw new GeneralException(AuthErrorCode.OAUTH_ACCESS_TOKEN_REQUIRED);
+        }
         OauthProfile profile = client.getProfile(oauthAccessToken);
 
         Member member = memberRepository

@@ -1,48 +1,42 @@
 package com.umc_9th.sleepinghero.domain.auth.client;
 
+import com.umc_9th.sleepinghero.domain.auth.exception.code.AuthErrorCode;
 import com.umc_9th.sleepinghero.domain.auth.model.OauthProfile;
 import com.umc_9th.sleepinghero.domain.member.enums.OauthProvider;
-import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralErrorCode;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
-import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
 @Component
-public class KakaoOauthClient implements OauthClient {
+public class KakaoOauthClient extends AbstractOauthClient implements OauthClient {
 
     private static final String KAKAO_ME_URL = "https://kapi.kakao.com/v2/user/me";
-    private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
     public OauthProfile getProfile(String accessToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
+        Map<?, ?> body = getForMap(KAKAO_ME_URL, accessToken);
 
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<Map> response = restTemplate.exchange(
-                KAKAO_ME_URL,
-                HttpMethod.GET,
-                entity,
-                Map.class
-        );
-
-        Map<?, ?> body = response.getBody();
-        if (body == null) {
-            throw new GeneralException(GeneralErrorCode.UNAUTHORIZED);
+        String providerId = String.valueOf(body.get("id"));
+        if (providerId == null || providerId.isBlank() || "null".equals(providerId)) {
+            throw new GeneralException(AuthErrorCode.OAUTH_PROCESSING_FAILED);
         }
 
-        Map<?, ?> kakaoAccount = (Map<?, ?>) body.get("kakao_account");
-        Map<?, ?> profile = (Map<?, ?>) kakaoAccount.get("profile");
+        Object check = body.get("kakao_account");
+        Map<?, ?> kakaoAccount = (check instanceof Map<?, ?> m) ? m : null;
+
+        Object profilecheck = (kakaoAccount == null) ? null : kakaoAccount.get("profile");
+        Map<?, ?> profile = (profilecheck instanceof Map<?, ?> m) ? m : null;
+
+        String email = (kakaoAccount == null) ? null : (String) kakaoAccount.get("email");
+        String nickname = (profile == null) ? null : (String) profile.get("nickname");
+        String profileImage = (profile == null) ? null : (String) profile.get("profile_image_url");
 
         return new OauthProfile(
-                String.valueOf(body.get("id")),
-                (String) kakaoAccount.get("email"),
-                (String) profile.get("nickname"),
-                (String) profile.get("profile_image_url")
+                providerId,
+                email,
+                nickname,
+                profileImage
         );
     }
 
