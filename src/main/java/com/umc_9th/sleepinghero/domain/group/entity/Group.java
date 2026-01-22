@@ -21,6 +21,9 @@ public class Group extends BaseEntity {
     @Column(nullable = false)
     private String description;
 
+    @Column(nullable = false)
+    private String master;
+
     @Column(nullable = false, name = "max_people ")
     @Builder.Default
     private int maxPeople = 10;
@@ -28,6 +31,6 @@ public class Group extends BaseEntity {
 
     @Column(nullable = false, name = "current_people ")
     @Builder.Default
-    private int currentPeople = 1;
+    private int currentPeople = 0;
 
 }

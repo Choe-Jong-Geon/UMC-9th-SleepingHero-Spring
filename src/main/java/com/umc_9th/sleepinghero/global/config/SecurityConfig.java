@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Swagger 관련만 일단 허용
                         .requestMatchers(swaggerUris).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll() //개발용 모든 요청 임시 허용
                 );
 
         return http.build();

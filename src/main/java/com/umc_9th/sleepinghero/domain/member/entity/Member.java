@@ -26,6 +26,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private String nickName;
 
+    @Column
     private String profilePicture;
 
     @Column(nullable = false)
@@ -33,8 +34,8 @@ public class Member extends BaseEntity {
     @Builder.Default
     private Role role = Role.ROLE_USER;
 
-    @Column(nullable = false, unique = true, name = "provider_id")
-    private String providerId;
+    @Column(nullable = false, name = "provider")
+    private String provider;
 
     @Column(nullable = false, name = "tutorial_clear")
     @Builder.Default
