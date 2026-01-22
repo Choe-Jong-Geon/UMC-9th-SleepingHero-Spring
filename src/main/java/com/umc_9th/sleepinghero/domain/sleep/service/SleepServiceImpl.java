@@ -7,8 +7,10 @@ import com.umc_9th.sleepinghero.domain.sleep.converter.SleepConverter;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepEndResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepRecordResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepGoal;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
 import com.umc_9th.sleepinghero.domain.sleep.exception.SleepErrorCode;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralErrorCode;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
@@ -26,7 +28,9 @@ import java.time.LocalDateTime;
 public class SleepServiceImpl implements SleepService {
 
     private final SleepRecordRepository sleepRecordRepository;
+    private final SleepGoalRepository sleepGoalRepository;
     private final MemberRepository memberRepository;
+
     private final SleepConverter sleepConverter;
 
 
@@ -62,7 +66,7 @@ public class SleepServiceImpl implements SleepService {
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
 
         SleepRecord record = SleepRecord.builder()
-                .sleptTime(LocalDateTime.now())
+                .sleptTime(LocalDateTime.now().withNano(0))
                 .member(member)
                 .build();
 
@@ -88,8 +92,19 @@ public class SleepServiceImpl implements SleepService {
                 .findTopByMemberIdAndWokeTimeIsNullOrderBySleptTimeDesc(memberId)
                 .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND));
 
+        SleepGoal goal = sleepGoalRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
 
-        record.updateWokeTime(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now().withNano(0);
+        LocalDateTime goalDateTime = LocalDateTime.of(now.toLocalDate(), goal.getWakeTime());
+
+        record.updateWokeTime(now);
+
+        if(now.isBefore(goalDateTime))
+            goal.successGoal();
+        else
+            goal.failGoal();
+
         member.endSleep();
 
         Duration d = Duration.between(record.getSleptTime(), record.getWokeTime());

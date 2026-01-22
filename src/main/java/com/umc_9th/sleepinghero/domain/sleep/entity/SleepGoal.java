@@ -20,8 +20,6 @@ import java.time.LocalTime;
 @Builder
 public class SleepGoal extends BaseEntity {
 
-
-
     @Column(nullable = false, name = "sleep_time")
     private LocalTime sleepTime;
 
@@ -36,12 +34,17 @@ public class SleepGoal extends BaseEntity {
     @Builder.Default
     private int bestStreak = 0;
 
-    @Column(nullable = false, name = "non_sleep_streak")
-    @Builder.Default
-    private int nonSleepStreak = 0;
-
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", unique = true, nullable = false)
     private Member member;
 
+    public void successGoal(){
+        currentStreak++;
+        if(currentStreak > bestStreak){
+            bestStreak = currentStreak;
+        }
+    }
+    public void failGoal(){
+        currentStreak = 0;
+    }
 }
