@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Service
 @RequiredArgsConstructor
@@ -47,7 +48,6 @@ public class SleepServiceImpl implements SleepService {
         return records.map(sleepConverter::toDto);
     }
 
-
     @Override
     @Transactional(readOnly = true)
     public SleepRecordResponse getSleepRecord(Long sleepRecordId, Long memberId) {
@@ -65,8 +65,21 @@ public class SleepServiceImpl implements SleepService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
 
-        if(member.isSleepStatus())
+
+        if(member.isSleepStatus()) {
             throw new GeneralException(SleepErrorCode.SLEEP_ALREADY_IN_PROGRESS);
+        }
+
+        SleepGoal goal = sleepGoalRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_GOAL_NOT_FOUND));
+
+        LocalTime now = LocalTime.now().withNano(0);
+        LocalTime goalTime = goal.getSleepTime();
+
+        long duration = Duration.between(now, goalTime).abs().toMinutes();
+
+        if(duration > 10)
+            throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INVALID);
 
         SleepRecord record = SleepRecord.builder()
                 .sleptTime(LocalDateTime.now().withNano(0))
