@@ -99,9 +99,8 @@ public class SleepServiceImpl implements SleepService {
                 .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_GOAL_NOT_FOUND));
 
         LocalDateTime now = LocalDateTime.now().withNano(0);
-
-        LocalDateTime slept = record.getSleptTime(); // 22:00
-        LocalDateTime goalDateTime = LocalDateTime.of(slept.toLocalDate(), goal.getWakeTime()); // 오늘 05:00
+        LocalDateTime slept = record.getSleptTime();
+        LocalDateTime goalDateTime = LocalDateTime.of(slept.toLocalDate(), goal.getWakeTime());
 
         // 목표시간이 다음날 아침에 일어나는 경우
         if (goal.getWakeTime().isBefore(slept.toLocalTime()))
