@@ -16,7 +16,7 @@ public class GroupConverter {
                 .description(request.getDescription())
                 .master(masterNickName)
                 .maxPeople(request.getMaxPeople() != null ? request.getMaxPeople() : 10)
-                .currentPeople(1) // 생성자 본인이 첫 번째 멤버이므로 1로 시작
+                .currentPeople(1)
                 .build();
     }
 

@@ -26,7 +26,7 @@ public class MemberService {
     private final FriendRepository friendRepository;
     private final MemberRepository memberRepository;
 
-    // 1. 친구 요청
+
     public String sendFriendRequest(Long memberId, String targetNickName) {
         Member me = findMemberByIdOrThrow(memberId);
         Member friend = findMemberByNickNameOrThrow(targetNickName);
@@ -52,12 +52,12 @@ public class MemberService {
                 .orElseThrow(() -> new GeneralException(MemberErrorCode.INVALID_FRIEND_REQUEST));
 
         if ("accept".equalsIgnoreCase(action)) {
-            request.updateStatus(Status.ACCEPTED);
+            request.updateStatus(Status.APPROVE);
             // 양방향 데이터 생성 (나 -> 상대방)
             friendRepository.save(Friend.builder()
                     .member(me)
                     .friend(sender)
-                    .status(Status.ACCEPTED)
+                    .status(Status.APPROVE)
                     .build());
             return "친구 요청을 수락하였습니다.";
         }
@@ -81,8 +81,8 @@ public class MemberService {
         Member me = findMemberByIdOrThrow(memberId);
         Member friend = findMemberByNickNameOrThrow(friendNickName);
 
-        List<Friend> relations = friendRepository.findAllByMemberAndFriendAndStatus(me, friend, Status.ACCEPTED);
-        List<Friend> reverse = friendRepository.findAllByMemberAndFriendAndStatus(friend, me, Status.ACCEPTED);
+        List<Friend> relations = friendRepository.findAllByMemberAndFriendAndStatus(me, friend, Status.APPROVE);
+        List<Friend> reverse = friendRepository.findAllByMemberAndFriendAndStatus(friend, me, Status.APPROVE);
 
         if (relations.isEmpty() && reverse.isEmpty()) {
             throw new GeneralException(MemberErrorCode.INVALID_FRIEND_REQUEST);
@@ -93,7 +93,7 @@ public class MemberService {
         return "친구가 삭제되었습니다.";
     }
 
-    // --- Helper Methods (Private) ---
+    // ------------------------------------ private methode -----------------------------------------
 
     private Member findMemberByIdOrThrow(Long id) {
         return memberRepository.findById(id)

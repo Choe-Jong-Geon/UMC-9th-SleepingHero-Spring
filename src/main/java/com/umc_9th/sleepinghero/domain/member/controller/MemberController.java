@@ -21,12 +21,7 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    // 내부에서만 사용하는 닉네임 추출 헬퍼 메서드
-    private String getNickName(Member member) {
-        return member.getNickName();
-    }
 
-    // 1. 친구 요청 보내기
     @PostMapping("/friends/requests")
     public ApiResponse<String> requestFriends(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
@@ -58,7 +53,7 @@ public class MemberController {
     public ApiResponse<List<FriendResponse>> getFriendList(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId) {
 
-        List<FriendResponse> result = memberService.getFriendListByStatus(memberId, Status.ACCEPTED);
+        List<FriendResponse> result = memberService.getFriendListByStatus(memberId, Status.APPROVE);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 

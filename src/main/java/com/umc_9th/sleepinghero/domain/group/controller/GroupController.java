@@ -2,12 +2,8 @@ package com.umc_9th.sleepinghero.domain.group.controller;
 
 import com.umc_9th.sleepinghero.domain.group.dto.req.*;
 import com.umc_9th.sleepinghero.domain.group.service.GroupService;
-import com.umc_9th.sleepinghero.domain.member.entity.Member;
-import com.umc_9th.sleepinghero.domain.member.login_temp.LoginUser;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
-import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralErrorCode;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
-import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +41,7 @@ public class GroupController {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
-    @PatchMapping("/requests/{status}") // Post에서 Patch로 수정 (상태 변경이므로)
+    @PatchMapping("/requests/{status}")
     public ApiResponse<String> processGroupInvitation(
             @AuthenticationPrincipal Long memberId,
             @PathVariable String status,
@@ -55,7 +51,7 @@ public class GroupController {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
-    @PostMapping("/exit") // 경로 중복 제거
+    @PostMapping("/exit")
     public ApiResponse<String> exitGroup(
             @AuthenticationPrincipal Long memberId,
             @RequestBody GroupExitRequest request) {
@@ -64,7 +60,7 @@ public class GroupController {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
-    @DeleteMapping("/deletions") // 경로 중복 제거
+    @DeleteMapping("/deletions")
     public ApiResponse<String> deleteGroup(
             @AuthenticationPrincipal Long memberId,
             @RequestBody GroupDeleteRequest request) {

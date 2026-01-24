@@ -80,7 +80,7 @@ public class GroupService {
 
         if ("accept".equalsIgnoreCase(status)) {
             validateGroupCapacity(group);
-            invitation.updateStatus(Status.ACCEPTED);
+            invitation.updateStatus(Status.APPROVE);
             group.incrementCurrentPeople();
             return "그룹 가입 요청을 수락하였습니다.";
         }
@@ -106,14 +106,14 @@ public class GroupService {
         validateMasterAuthority(group, loginMember.getNickName());
         validateDeletableCondition(group);
 
-        List<GroupMember> masterRelation = groupMemberRepository.findAllByHeroGroupsIdAndStatus(group.getId(), Status.ACCEPTED);
+        List<GroupMember> masterRelation = groupMemberRepository.findAllByHeroGroupsIdAndStatus(group.getId(), Status.APPROVE);
         groupMemberRepository.deleteAll(masterRelation);
         groupRepository.delete(group);
 
         return "그룹이 삭제되었습니다.";
     }
 
-    // --- Private Methods for Internal Logic ---
+    //------------------------------------------private logic ------------------------------------
 
     private String kickMember(Member admin, Group group, String targetNickName) {
         validateMasterAuthority(group, admin.getNickName());
@@ -158,7 +158,7 @@ public class GroupService {
     }
 
     private GroupMember findAcceptedMemberOrThrow(Member member, Group group) {
-        return groupMemberRepository.findByMemberAndHeroGroupsAndStatus(member, group, Status.ACCEPTED)
+        return groupMemberRepository.findByMemberAndHeroGroupsAndStatus(member, group, Status.APPROVE)
                 .orElseThrow(() -> new GeneralException(GroupErrorCode.GROUP_NOT_FOUND));
     }
 
@@ -225,7 +225,7 @@ public class GroupService {
     }
 
     private double calculateGroupSleepAverage(Long groupId) {
-        List<GroupMember> groupMembers = groupMemberRepository.findAllByHeroGroupsIdAndStatus(groupId, Status.ACCEPTED);
+        List<GroupMember> groupMembers = groupMemberRepository.findAllByHeroGroupsIdAndStatus(groupId, Status.APPROVE);
         if (groupMembers.isEmpty()) return 0.0;
 
         return groupMembers.stream()
