@@ -65,6 +65,9 @@ public class SleepServiceImpl implements SleepService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
 
+        if(member.isSleepStatus())
+            throw new GeneralException(SleepErrorCode.SLEEP_ALREADY_IN_PROGRESS);
+
         SleepRecord record = SleepRecord.builder()
                 .sleptTime(LocalDateTime.now().withNano(0))
                 .member(member)
@@ -86,24 +89,32 @@ public class SleepServiceImpl implements SleepService {
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
 
         if(!member.isSleepStatus())
-            throw new GeneralException(SleepErrorCode.SLEEP_RECORD_BAD_REQUEST);
+            throw new GeneralException(SleepErrorCode.SLEEP_NOT_IN_PROGRESS);
 
         SleepRecord record = sleepRecordRepository
                 .findTopByMemberIdAndWokeTimeIsNullOrderBySleptTimeDesc(memberId)
-                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
 
         SleepGoal goal = sleepGoalRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_GOAL_NOT_FOUND));
 
         LocalDateTime now = LocalDateTime.now().withNano(0);
-        LocalDateTime goalDateTime = LocalDateTime.of(now.toLocalDate(), goal.getWakeTime());
+
+        LocalDateTime slept = record.getSleptTime(); // 22:00
+        LocalDateTime goalDateTime = LocalDateTime.of(slept.toLocalDate(), goal.getWakeTime()); // 오늘 05:00
+
+        // 목표시간이 다음날 아침에 일어나는 경우
+        if (goal.getWakeTime().isBefore(slept.toLocalTime()))
+            goalDateTime = goalDateTime.plusDays(1);
 
         record.updateWokeTime(now);
 
-        if(now.minusMonths(10).isBefore(goalDateTime))      // 목표 시간 - 10분 보다 일찍 일어나면 실패
-            goal.failGoal();
-        else                               // 늦거나 똑같이 일어나면 성공
+        LocalDateTime failTime = goalDateTime.minusMinutes(10);
+
+        if(failTime.isBefore(now))  // 목표시간 - 10분 이후에 기상한 경우
             goal.successGoal();
+        else
+            goal.failGoal();
 
         member.endSleep();
 

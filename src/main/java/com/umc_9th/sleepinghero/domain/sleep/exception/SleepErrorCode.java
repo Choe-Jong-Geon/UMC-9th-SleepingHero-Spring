@@ -9,13 +9,28 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum SleepErrorCode implements BaseErrorCode {
 
-    SLEEP_RECORD_BAD_REQUEST(HttpStatus.BAD_REQUEST,
-            "COMMON400_1",
-            "이미 기상 상태입니다."),
 
+    SLEEP_NOT_IN_PROGRESS(HttpStatus.BAD_REQUEST,
+            "SLEEP400_1",
+            "현재 수면 중인 상태가 아닙니다."),
     SLEEP_RECORD_NOT_FOUND(HttpStatus.NOT_FOUND,
-            "COMMON404_1",
-            "해당 수면 기록을 찾을 수 없습니다.");
+            "SLEEP404_1",
+            "해당 수면 기록을 찾을 수 없습니다."),
+    SLEEP_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT,
+            "SLEEP_409_1",
+                    "해당 사용자는 이미 수면 중 입니다."),
+
+    SLEEP_GOAL_NOT_FOUND(HttpStatus.NOT_FOUND,
+            "SLEEP404_2",
+            "해당 사용자의 수면 목표가 설정되어 있지 않습니다."),
+
+
+
+    SLEEP_SESSION_INCONSISTENT(HttpStatus.INTERNAL_SERVER_ERROR,
+            "COMMON500_1",
+            "수면 상태와 수면 기록이 일치하지 않습니다.");
+
+
 
     private final HttpStatus status;
     private final String code;
