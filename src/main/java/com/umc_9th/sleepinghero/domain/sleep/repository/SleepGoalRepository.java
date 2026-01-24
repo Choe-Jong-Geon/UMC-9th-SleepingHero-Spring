@@ -8,6 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface SleepGoalRepository extends JpaRepository<SleepGoal, Long> {
-
     Optional<SleepGoal> findByMemberId(Long memberId);
 }

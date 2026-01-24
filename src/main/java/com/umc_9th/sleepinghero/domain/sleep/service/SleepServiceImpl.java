@@ -100,10 +100,10 @@ public class SleepServiceImpl implements SleepService {
 
         record.updateWokeTime(now);
 
-        if(now.isBefore(goalDateTime))
-            goal.successGoal();
-        else
+        if(now.minusMonths(10).isBefore(goalDateTime))      // 목표 시간 - 10분 보다 일찍 일어나면 실패
             goal.failGoal();
+        else                               // 늦거나 똑같이 일어나면 성공
+            goal.successGoal();
 
         member.endSleep();
 
