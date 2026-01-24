@@ -1,15 +1,18 @@
 package com.umc_9th.sleepinghero.domain.group.service;
 
 import com.umc_9th.sleepinghero.domain.group.converter.GroupConverter;
-import com.umc_9th.sleepinghero.domain.group.dto.req.GroupMakeRequestDto;
-import com.umc_9th.sleepinghero.domain.group.dto.req.GroupRankResponse;
+import com.umc_9th.sleepinghero.domain.group.dto.req.*;
 import com.umc_9th.sleepinghero.domain.group.entity.Group;
 import com.umc_9th.sleepinghero.domain.group.entity.GroupMember;
 import com.umc_9th.sleepinghero.domain.group.exception.GroupErrorCode;
 import com.umc_9th.sleepinghero.domain.group.repository.GroupMemberRepository;
 import com.umc_9th.sleepinghero.domain.group.repository.GroupRepository;
+import com.umc_9th.sleepinghero.domain.member.entity.Member;
+import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
+import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
 import com.umc_9th.sleepinghero.domain.sleep.Repository.SleepRecordRepository;
 
+import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralErrorCode;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import com.umc_9th.sleepinghero.global.enums.Status;
 import lombok.RequiredArgsConstructor;
@@ -17,10 +20,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static com.umc_9th.sleepinghero.domain.group.enums.GroupRole.USER;
+
 
 @Service
 @RequiredArgsConstructor
@@ -30,60 +37,197 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final SleepRecordRepository sleepRecordRepository;
+    private final MemberRepository memberRepository;
 
-    public String createGroup(GroupMakeRequestDto request, String masterNickName) {
-
-        if (request.getGroupName() == null || request.getDescription() == null) {
-            throw new GeneralException(GroupErrorCode.GROUP_NOT_MADE);
-        }
-
-        Group newGroup = GroupConverter.toGroup(request, masterNickName);
-        groupRepository.save(newGroup);
-
+    public String createGroup(Long memberId, GroupMakeRequestDto request) {
+        validateGroupRequest(request);
+        Member member = findMemberByIdOrThrow(memberId);
+        groupRepository.save(GroupConverter.toGroup(request, member.getNickName()));
         return "그룹 생성이 완료되었습니다.";
     }
 
+    @Transactional(readOnly = true)
     public List<GroupRankResponse> getGroupRanking() {
-        // 1. 모든 그룹 조회
         List<Group> groups = groupRepository.findAll();
+        Map<Long, Double> groupSleepAvgMap = calculateAllGroupsSleepAverage(groups);
 
-        // 2. 그룹별 평균 수면 시간 미리 계산 (정렬 성능 향상)
-        Map<Long, Double> groupSleepAvgMap = groups.stream()
-                .collect(Collectors.toMap(
-                        Group::getId,
-                        group -> calculateGroupSleepAverage(group.getId())
-                ));
-
-        // 3. 정렬 로직 (1순위: 인원수, 2순위: 평균 수면시간)
         List<Group> sortedGroups = groups.stream()
-                .sorted((g1, g2) -> {
-                    // 인원수 내림차순
-                    if (g1.getCurrentPeople() != g2.getCurrentPeople()) {
-                        return Integer.compare(g2.getCurrentPeople(), g1.getCurrentPeople());
-                    }
-                    // 평균 수면 시간 내림차순
-                    return Double.compare(groupSleepAvgMap.get(g2.getId()), groupSleepAvgMap.get(g1.getId()));
-                })
+                .sorted(getGroupComparator(groupSleepAvgMap))
                 .collect(Collectors.toList());
 
-        // 4. 리스트 인덱스를 활용해 DTO로 변환 (순위 부여)
-        List<GroupRankResponse> result = new ArrayList<>();
-        for (int i = 0; i < sortedGroups.size(); i++) {
-            Group group = sortedGroups.get(i);
-            // i + 1이 곧 순위(rank)가 됩니다.
-            result.add(GroupConverter.toGroupRankResponse(group, i + 1));
+        return IntStream.range(0, sortedGroups.size())
+                .mapToObj(i -> GroupConverter.toGroupRankResponse(sortedGroups.get(i), i + 1))
+                .collect(Collectors.toList());
+    }
+
+    public String inviteMember(Long memberId, GroupInvitationRequest request) {
+        Member me = findMemberByIdOrThrow(memberId);
+        Group group = findGroupByNameOrThrow(request.getGroupName());
+
+        validateMasterAuthority(group, me.getNickName());
+
+        Member invitee = findMemberByNickNameOrThrow(request.getNickName());
+        validateInvitationEligibility(invitee, group);
+
+        groupMemberRepository.save(GroupConverter.toGroupMember(invitee, group, USER, Status.PENDING));
+        return "그룹 초대/가입 요청이 완료되었습니다.";
+    }
+
+    public String processGroupInvitation(Long memberId, String groupName, String status) {
+        Member me = findMemberByIdOrThrow(memberId);
+        Group group = findGroupByNameOrThrow(groupName);
+        GroupMember invitation = findPendingInvitationOrThrow(me, group);
+
+        if ("accept".equalsIgnoreCase(status)) {
+            validateGroupCapacity(group);
+            invitation.updateStatus(Status.ACCEPTED);
+            group.incrementCurrentPeople();
+            return "그룹 가입 요청을 수락하였습니다.";
         }
 
-        return result;
+        groupMemberRepository.delete(invitation);
+        return "그룹 가입 요청을 거부하였습니다.";
+    }
+
+    public String exitOrKickGroup(Long memberId, GroupExitRequest request) {
+        Member loginMember = findMemberByIdOrThrow(memberId);
+        Group group = findGroupByNameOrThrow(request.getGroupName());
+
+        if (isKickScenario(request)) {
+            return kickMember(loginMember, group, request.getNickName());
+        }
+        return leaveGroup(loginMember, group);
+    }
+
+    public String deleteGroup(Long memberId, GroupDeleteRequest request) {
+        Member loginMember = findMemberByIdOrThrow(memberId);
+        Group group = findGroupByNameOrThrow(request.getGroupName());
+
+        validateMasterAuthority(group, loginMember.getNickName());
+        validateDeletableCondition(group);
+
+        List<GroupMember> masterRelation = groupMemberRepository.findAllByHeroGroupsIdAndStatus(group.getId(), Status.ACCEPTED);
+        groupMemberRepository.deleteAll(masterRelation);
+        groupRepository.delete(group);
+
+        return "그룹이 삭제되었습니다.";
+    }
+
+    // --- Private Methods for Internal Logic ---
+
+    private String kickMember(Member admin, Group group, String targetNickName) {
+        validateMasterAuthority(group, admin.getNickName());
+        validateNotSelfKick(admin.getNickName(), targetNickName);
+
+        Member targetMember = findMemberByNickNameOrThrow(targetNickName);
+        GroupMember groupMember = findAcceptedMemberOrThrow(targetMember, group);
+
+        groupMemberRepository.delete(groupMember);
+        group.decrementCurrentPeople();
+        return "'" + targetNickName + "'를 추방하였습니다.";
+    }
+
+    private String leaveGroup(Member member, Group group) {
+        validateNotMasterLeave(group, member.getNickName());
+        GroupMember groupMember = findAcceptedMemberOrThrow(member, group);
+
+        groupMemberRepository.delete(groupMember);
+        group.decrementCurrentPeople();
+        return "그룹을 탈퇴하였습니다.";
+    }
+
+    private Member findMemberByIdOrThrow(Long id) {
+        return memberRepository.findById(id)
+                .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    private Member findMemberByNickNameOrThrow(String nickName) {
+        return memberRepository.findByNickName(nickName)
+                .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    // (기타 validate 및 find 메서드는 기존과 동일하되 인자값만 조절)
+    private Group findGroupByNameOrThrow(String name) {
+        return groupRepository.findByName(name)
+                .orElseThrow(() -> new GeneralException(GroupErrorCode.GROUP_NOT_FOUND));
+    }
+
+    private GroupMember findPendingInvitationOrThrow(Member member, Group group) {
+        return groupMemberRepository.findByMemberAndHeroGroupsAndStatus(member, group, Status.PENDING)
+                .orElseThrow(() -> new GeneralException(GroupErrorCode.GROUP_NOT_FOUND));
+    }
+
+    private GroupMember findAcceptedMemberOrThrow(Member member, Group group) {
+        return groupMemberRepository.findByMemberAndHeroGroupsAndStatus(member, group, Status.ACCEPTED)
+                .orElseThrow(() -> new GeneralException(GroupErrorCode.GROUP_NOT_FOUND));
+    }
+
+    private void validateGroupRequest(GroupMakeRequestDto request) {
+        if (request.getGroupName() == null || request.getDescription() == null) {
+            throw new GeneralException(GroupErrorCode.GROUP_NOT_MADE);
+        }
+    }
+
+    private void validateMasterAuthority(Group group, String nickName) {
+        if (!group.getMaster().equals(nickName)) {
+            throw new GeneralException(GroupErrorCode.NOT_GROUP_MASTER);
+        }
+    }
+
+    private void validateDeletableCondition(Group group) {
+        if (group.getCurrentPeople() > 1) {
+            throw new GeneralException(GroupErrorCode.GROUP_NOT_DELETED);
+        }
+    }
+
+    private void validateInvitationEligibility(Member invitee, Group group) {
+        if (groupMemberRepository.existsByMemberAndHeroGroups(invitee, group)) {
+            throw new GeneralException(MemberErrorCode.FRIEND_ALREADY_EXISTS);
+        }
+        if (group.getCurrentPeople() >= group.getMaxPeople()) {
+            throw new GeneralException(GroupErrorCode.GROUP_FULL);
+        }
+    }
+
+    private void validateGroupCapacity(Group group) {
+        if (group.getCurrentPeople() >= group.getMaxPeople()) {
+            throw new GeneralException(GroupErrorCode.GROUP_FULL);
+        }
+    }
+
+    private void validateNotSelfKick(String adminNick, String targetNick) {
+        if (adminNick.equals(targetNick)) {
+            throw new GeneralException(GeneralErrorCode.BAD_REQUEST);
+        }
+    }
+
+    private void validateNotMasterLeave(Group group, String nickName) {
+        if (group.getMaster().equals(nickName)) {
+            throw new GeneralException(GroupErrorCode.MASTER_NOT_EXITED);
+        }
+    }
+
+    private boolean isKickScenario(GroupExitRequest request) {
+        return request.getNickName() != null && !request.getNickName().isBlank();
+    }
+
+    private Comparator<Group> getGroupComparator(Map<Long, Double> groupSleepAvgMap) {
+        return (g1, g2) -> {
+            if (g1.getCurrentPeople() != g2.getCurrentPeople()) {
+                return Integer.compare(g2.getCurrentPeople(), g1.getCurrentPeople());
+            }
+            return Double.compare(groupSleepAvgMap.get(g2.getId()), groupSleepAvgMap.get(g1.getId()));
+        };
+    }
+
+    private Map<Long, Double> calculateAllGroupsSleepAverage(List<Group> groups) {
+        return groups.stream().collect(Collectors.toMap(Group::getId, group -> calculateGroupSleepAverage(group.getId())));
     }
 
     private double calculateGroupSleepAverage(Long groupId) {
-        // GroupMember를 통해 해당 그룹에 속한(ACCEPTED) 멤버들을 가져옴
         List<GroupMember> groupMembers = groupMemberRepository.findAllByHeroGroupsIdAndStatus(groupId, Status.ACCEPTED);
-
         if (groupMembers.isEmpty()) return 0.0;
 
-        // 멤버들의 수면 기록(success=true)을 합산하여 평균 계산
         return groupMembers.stream()
                 .map(GroupMember::getMember)
                 .flatMap(member -> sleepRecordRepository.findAllByMemberAndSuccess(member, true).stream())

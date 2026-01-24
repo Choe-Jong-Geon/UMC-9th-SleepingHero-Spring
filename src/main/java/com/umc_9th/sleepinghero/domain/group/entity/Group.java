@@ -33,4 +33,14 @@ public class Group extends BaseEntity {
     @Builder.Default
     private int currentPeople = 0;
 
+    public void incrementCurrentPeople() {
+        this.currentPeople++;
+    }
+
+    public void decrementCurrentPeople() {
+        if (this.currentPeople > 0) {
+            this.currentPeople--;
+        }
+    }
+
 }

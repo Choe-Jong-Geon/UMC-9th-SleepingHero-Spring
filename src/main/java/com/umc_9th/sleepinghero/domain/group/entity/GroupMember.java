@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "group_member ",
+@Table(name = "group_member",
     uniqueConstraints = {
         @UniqueConstraint(columnNames = {"member_id", "group_id"})
     })
@@ -38,4 +38,8 @@ public class GroupMember extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
     private Group heroGroups;
+
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
 }
