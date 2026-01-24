@@ -7,6 +7,7 @@ import com.umc_9th.sleepinghero.global.apiPayload.code.BaseSuccessCode;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,9 +20,11 @@ public class HomeController {
     private final HomeService homeService;
 
     @GetMapping("/dashboard")
-    public ResponseEntity<ApiResponse<DashBoardResponse>> dashboard() {
+    public ResponseEntity<ApiResponse<DashBoardResponse>> dashboard(
+            @AuthenticationPrincipal Long memberId
+    ) {
             return ResponseEntity.ok(ApiResponse.onSuccess(
-                    GeneralSuccessCode.OK, homeService.dashboard(1L)
+                    GeneralSuccessCode.OK, homeService.dashboard(memberId)
             ));
         }
 }

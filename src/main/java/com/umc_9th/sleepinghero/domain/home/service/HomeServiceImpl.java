@@ -7,7 +7,10 @@ import com.umc_9th.sleepinghero.domain.home.dto.res.DashBoardResponse;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepGoal;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
+import com.umc_9th.sleepinghero.domain.sleep.exception.SleepErrorCode;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
+import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,10 +29,8 @@ public class HomeServiceImpl implements HomeService {
                 .orElseThrow(RuntimeException::new);
 
         SleepGoal goal = sleepGoalRepository.findByMemberId(memberId)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_GOAL_NOT_FOUND));
 
         return homeConverter.toDto(hero, goal);
     }
-
-
 }
