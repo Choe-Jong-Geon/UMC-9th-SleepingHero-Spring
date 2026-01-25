@@ -29,3 +29,6 @@ springdoc:
     operations-sorter: method
     disable-swagger-default-url: true
     display-request-duration: true
+# 커스텀 설정
+help:
+  inquiry-url: "https://www.google.com"

@@ -3,10 +3,7 @@ package com.umc_9th.sleepinghero.domain.member.entity;
 import com.umc_9th.sleepinghero.domain.member.enums.Role;
 import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 
@@ -36,9 +33,15 @@ public class Member extends BaseEntity {
     @Column(nullable = false, unique = true, name = "provider_id")
     private String providerId;
 
+    @Setter
     @Column(nullable = false, name = "tutorial_clear")
     @Builder.Default
     private boolean tutorialClear = false;
+
+    @Setter // 마케팅 수신 여부
+    @Column(nullable = false, name = "marketing_agreed")
+    @Builder.Default
+    private boolean marketingAgreed = false; //
 
     @Column(nullable = false, name = "sleep_status")
     @Builder.Default
