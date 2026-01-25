@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Group extends BaseEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
