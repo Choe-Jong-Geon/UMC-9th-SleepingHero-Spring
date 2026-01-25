@@ -1,7 +1,6 @@
-package com.umc_9th.sleepinghero.domain.friend.entity;
+package com.umc_9th.sleepinghero.domain.member.entity;
 
 
-import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import com.umc_9th.sleepinghero.global.enums.Status;
 import jakarta.persistence.*;
@@ -34,5 +33,10 @@ public class Friend extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "friend_id", nullable = false)
-    private Member friend;   // 상대방
+    private Member friend;
+
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
+
 }

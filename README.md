@@ -62,3 +62,4 @@
   |   DB_URL   | 데이터베이스 url                            |
   |  DB_USER   | 데이터베이스 유저(root) |
   |  DB_PASSWORD  | 데이터베이스 패스워드 |
+  |  JWT_SECRET   | JWT 토큰 생성 암호  |
