@@ -4,10 +4,7 @@ import com.umc_9th.sleepinghero.domain.member.enums.OauthProvider;
 import com.umc_9th.sleepinghero.domain.member.enums.Role;
 import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -41,6 +38,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false, name = "provider_id")
     private String providerId;
 
+    @Setter
     @Column(nullable = false, name = "tutorial_clear")
     @Builder.Default
     private boolean tutorialClear = false;

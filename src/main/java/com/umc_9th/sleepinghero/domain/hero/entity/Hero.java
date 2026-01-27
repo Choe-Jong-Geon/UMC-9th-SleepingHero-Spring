@@ -38,4 +38,11 @@ public class Hero extends BaseEntity {
     @JoinColumn(name = "skin_id", nullable = false)
     private Skin currentSkin;
 
+    public void updateName(String name) {
+        this.name = name;
+    }
+    public void updateSkin(Skin skin) {
+        this.currentSkin = skin;
+    }
+
 }
