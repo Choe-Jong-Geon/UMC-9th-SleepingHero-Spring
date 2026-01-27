@@ -43,11 +43,6 @@ public class Member extends BaseEntity {
     @Builder.Default
     private boolean tutorialClear = false;
 
-    @Setter // 마케팅 수신 여부
-    @Column(nullable = false, name = "marketing_agreed")
-    @Builder.Default
-    private boolean marketingAgreed = false;
-
     @Column(nullable = false, name = "sleep_status")
     @Builder.Default
     private boolean sleepStatus = false;

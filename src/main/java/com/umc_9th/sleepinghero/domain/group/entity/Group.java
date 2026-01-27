@@ -15,11 +15,14 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Group extends BaseEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
     private String description;
+
+    @Column(nullable = false)
+    private String master;
 
     @Column(nullable = false, name = "max_people ")
     @Builder.Default
@@ -28,6 +31,16 @@ public class Group extends BaseEntity {
 
     @Column(nullable = false, name = "current_people ")
     @Builder.Default
-    private int currentPeople = 1;
+    private int currentPeople = 0;
+
+    public void incrementCurrentPeople() {
+        this.currentPeople++;
+    }
+
+    public void decrementCurrentPeople() {
+        if (this.currentPeople > 0) {
+            this.currentPeople--;
+        }
+    }
 
 }

@@ -12,9 +12,5 @@ public class MemberRequestDTO {
         private boolean finished;
     }
 
-    @Getter
-    public static class UpdateAgreementsDTO {
-        private boolean marketingAgreed;
-    }
 
 }

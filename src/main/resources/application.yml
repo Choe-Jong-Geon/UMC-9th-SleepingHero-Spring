@@ -4,8 +4,6 @@ jwt:
   refresh-exp-days: 14
 
 spring:
-  profiles:
-    active: local
   application:
     name: sleepinghero
   data:

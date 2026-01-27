@@ -25,14 +25,4 @@ public class MemberResponseDTO {
         private boolean finished;
     }
 
-    @Builder
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AgreementsDTO {
-        private boolean serviceTerms;
-        private boolean privacyTerms;
-        private boolean marketingTerms;
-
-    }
 }
