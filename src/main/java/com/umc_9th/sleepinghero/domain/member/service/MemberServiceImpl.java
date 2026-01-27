@@ -3,7 +3,10 @@ package com.umc_9th.sleepinghero.domain.member.service;
 import com.umc_9th.sleepinghero.domain.member.dto.req.MemberRequestDTO;
 import com.umc_9th.sleepinghero.domain.member.dto.res.MemberResponseDTO;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
+import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
+import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralErrorCode;
+import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,31 +20,41 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public MemberResponseDTO.CheckTutorialDTO checkTutorial(Member member) {
+    public MemberResponseDTO.CheckTutorialDTO checkTutorial(Long memberId) {
+
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
+
         return MemberResponseDTO.CheckTutorialDTO.builder()
-                .isFinished(member.isTutorialClear())
+                .finished(member.isTutorialClear())
                 .build();
     }
 
 
     @Override
     @Transactional
-    public MemberResponseDTO.CompleteTutorialResultDTO completeTutorial(Member member, MemberRequestDTO.CompleteTutorialDTO request) {
+    public MemberResponseDTO.CompleteTutorialResultDTO completeTutorial(Long memberId, MemberRequestDTO.CompleteTutorialDTO request) {
 
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         member.setTutorialClear(request.isFinished());
 
-
-        Member savedMember = memberRepository.save(member);
+//        Member savedMember = memberRepository.save(member);
 
         return MemberResponseDTO.CompleteTutorialResultDTO.builder()
-                .memberId(savedMember.getId())
-                .isFinished(savedMember.isTutorialClear())
+                .memberId(member.getId())
+                .finished(member.isTutorialClear())
                 .build();
     }
 
     @Override
-    public MemberResponseDTO.AgreementsDTO getAgreements(Member member) {
+    public MemberResponseDTO.AgreementsDTO getAgreements(Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
+
         return MemberResponseDTO.AgreementsDTO.builder()
                 .serviceTerms(true)
                 .privacyTerms(true)
@@ -52,11 +65,13 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public MemberResponseDTO.AgreementsDTO updateAgreements(Member member, MemberRequestDTO.UpdateAgreementsDTO request) {
+    public MemberResponseDTO.AgreementsDTO updateAgreements(Long memberId, MemberRequestDTO.UpdateAgreementsDTO request) {
 
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         member.setMarketingAgreed(request.isMarketingAgreed());
-
 
         Member savedMember = memberRepository.save(member);
 
@@ -66,6 +81,5 @@ public class MemberServiceImpl implements MemberService {
                 .marketingTerms(savedMember.isMarketingAgreed())
                 .build();
     }
-
 
 }

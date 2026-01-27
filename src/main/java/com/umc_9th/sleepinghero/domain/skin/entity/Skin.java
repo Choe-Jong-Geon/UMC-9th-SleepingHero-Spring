@@ -17,4 +17,5 @@ import lombok.NoArgsConstructor;
 public class Skin extends BaseEntity {
 
     private String name;
+
 }

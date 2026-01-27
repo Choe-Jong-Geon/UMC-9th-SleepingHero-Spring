@@ -13,7 +13,7 @@ public class MemberResponseDTO {
     @AllArgsConstructor
     public static class CompleteTutorialResultDTO {
         private Long memberId;
-        private boolean isFinished;
+        private boolean finished;
     }
 
 
@@ -22,7 +22,7 @@ public class MemberResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CheckTutorialDTO {
-        private boolean isFinished;
+        private boolean finished;
     }
 
     @Builder
@@ -30,9 +30,9 @@ public class MemberResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AgreementsDTO {
-        private boolean serviceTerms;   // 이용약관 (무조건 true)
-        private boolean privacyTerms;   // 개인정보 (무조건 true)
-        private boolean marketingTerms; // 마케팅
+        private boolean serviceTerms;
+        private boolean privacyTerms;
+        private boolean marketingTerms;
 
     }
 }

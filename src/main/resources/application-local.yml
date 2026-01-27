@@ -4,8 +4,9 @@ jwt:
   refresh-exp-days: 14
 
 spring:
-  profiles:
-    active: local
+  sql:
+    init:
+      mode: always
   application:
     name: sleepinghero
   data:
@@ -20,6 +21,7 @@ spring:
     password: ${DB_PASSWORD}
 
   jpa:
+    defer-datasource-initialization: true
     hibernate:
       ddl-auto: update
     properties:

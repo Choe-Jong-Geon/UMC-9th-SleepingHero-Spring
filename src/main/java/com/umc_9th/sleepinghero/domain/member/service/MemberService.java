@@ -6,11 +6,11 @@ import com.umc_9th.sleepinghero.domain.member.entity.Member;
 
 public interface MemberService {
 
-    MemberResponseDTO.CheckTutorialDTO checkTutorial(Member member);
+    MemberResponseDTO.CheckTutorialDTO checkTutorial(Long memberId);
 
-    MemberResponseDTO.CompleteTutorialResultDTO completeTutorial(Member member, MemberRequestDTO.CompleteTutorialDTO request);
+    MemberResponseDTO.CompleteTutorialResultDTO completeTutorial(Long memberId, MemberRequestDTO.CompleteTutorialDTO request);
 
-    MemberResponseDTO.AgreementsDTO  getAgreements(Member member);
+    MemberResponseDTO.AgreementsDTO  getAgreements(Long memberId);
 
-    MemberResponseDTO.AgreementsDTO updateAgreements(Member member, MemberRequestDTO.UpdateAgreementsDTO request);
+    MemberResponseDTO.AgreementsDTO updateAgreements(Long memberId, MemberRequestDTO.UpdateAgreementsDTO request);
 }

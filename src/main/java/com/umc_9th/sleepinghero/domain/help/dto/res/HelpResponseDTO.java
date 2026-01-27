@@ -12,6 +12,6 @@ public class HelpResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class InquiryUrlDTO {
-        private String url; // 프론트가 이동할 주소
+        private String url; // 딥링크 주소
     }
 }
