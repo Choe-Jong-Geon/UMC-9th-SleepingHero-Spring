@@ -30,16 +30,16 @@ public class SkinServiceImpl implements SkinService {
 
     @Override
     public SkinResponseDTO.SkinListDTO getMySkins(Long memberId) {
-        // 1. 현재 장착 스킨 확인용 Hero 조회
+
         Hero hero = heroRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new GeneralException(HeroErrorCode.HERO_NOT_FOUND));
 
         Long equippedSkinId = hero.getCurrentSkin().getId();
 
-        // 2. 보유 스킨 목록(SkinMember) 조회
+
         List<SkinMember> mySkins = skinMemberRepository.findAllByMemberId(memberId);
 
-        // 3. DTO 변환
+
         List<SkinResponseDTO.SkinInfoDTO> skinInfoList = mySkins.stream()
                 .map(sm -> {
                     Skin skin = sm.getSkin();
@@ -59,18 +59,18 @@ public class SkinServiceImpl implements SkinService {
     @Override
     @Transactional
     public void equipSkin(Long memberId, Long skinId) {
-        // 1. 보유 여부 검증 (SkinMember 테이블 확인)
+
         skinMemberRepository.findByMemberIdAndSkinId(memberId, skinId)
                 .orElseThrow(() -> new GeneralException(SkinErrorCode.SKIN_NOT_OWNED));
 
-        // 2. 캐릭터 및 바꿀 스킨 엔티티 조회
+
         Hero hero = heroRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new GeneralException(HeroErrorCode.HERO_NOT_FOUND));
 
         Skin skinToEquip = skinRepository.findById(skinId)
                 .orElseThrow(() -> new GeneralException(SkinErrorCode.SKIN_NOT_FOUND));
 
-        // 3. 스킨 교체
+
         hero.updateSkin(skinToEquip);
     }
 }
