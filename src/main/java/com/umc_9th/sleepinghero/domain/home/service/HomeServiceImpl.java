@@ -1,6 +1,7 @@
 package com.umc_9th.sleepinghero.domain.home.service;
 
 import com.umc_9th.sleepinghero.domain.hero.entity.Hero;
+import com.umc_9th.sleepinghero.domain.hero.exception.HeroErrorCode;
 import com.umc_9th.sleepinghero.domain.hero.repository.HeroRepository;
 import com.umc_9th.sleepinghero.domain.home.converter.HomeConverter;
 import com.umc_9th.sleepinghero.domain.home.dto.res.DashBoardResponse;
@@ -26,7 +27,7 @@ public class HomeServiceImpl implements HomeService {
     public DashBoardResponse dashboard(Long memberId) {
 
         Hero hero = heroRepository.findByMemberId(memberId)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(() -> new GeneralException(HeroErrorCode.HERO_NOT_FOUND));
 
         SleepGoal goal = sleepGoalRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_GOAL_NOT_FOUND));
