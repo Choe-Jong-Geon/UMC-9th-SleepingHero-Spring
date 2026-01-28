@@ -3,10 +3,9 @@ package com.umc_9th.sleepinghero.domain.hero.service;
 import com.umc_9th.sleepinghero.domain.hero.dto.req.HeroRequestDTO;
 import com.umc_9th.sleepinghero.domain.hero.dto.res.HeroResponseDTO;
 import com.umc_9th.sleepinghero.domain.hero.entity.Hero;
-import com.umc_9th.sleepinghero.domain.hero.entity.Level;
 import com.umc_9th.sleepinghero.domain.hero.exception.HeroErrorCode;
 import com.umc_9th.sleepinghero.domain.hero.repository.HeroRepository;
-import com.umc_9th.sleepinghero.domain.hero.repository.LevelRepository;
+import com.umc_9th.sleepinghero.domain.hero.util.LevelPolicy;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
@@ -24,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class HeroServiceImpl implements HeroService {
 
     private final HeroRepository heroRepository;
-    private final LevelRepository levelRepository;
     private final SkinRepository skinRepository;
     private final MemberRepository memberRepository;
 
@@ -39,9 +37,9 @@ public class HeroServiceImpl implements HeroService {
         return HeroResponseDTO.HeroDetailDTO.builder()
                 .heroId(hero.getId())
                 .name(hero.getName())
-                .level(hero.getLevel().getId().intValue())
+                .currentLevel(hero.getCurrentLevel())
                 .currentExp(hero.getCurrentExp())
-                .needExp(hero.getLevel().getNeedExp())
+                .needExp(LevelPolicy.needExp(hero.getCurrentLevel()))
                 .currentStage(hero.getCurrentStage())
                 .build();
     }
@@ -59,8 +57,6 @@ public class HeroServiceImpl implements HeroService {
                 .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
 
 
-        Level level1 = levelRepository.findById(1L)
-                .orElseThrow(() -> new GeneralException(HeroErrorCode.LEVEL_NOT_FOUND));
         Skin defaultSkin = skinRepository.findById(1L)
                 .orElseThrow(() -> new GeneralException(SkinErrorCode.SKIN_NOT_FOUND));
 
@@ -68,9 +64,9 @@ public class HeroServiceImpl implements HeroService {
         Hero newHero = Hero.builder()
                 .name("김용사")
                 .member(member)
-                .level(level1)
+                .currentLevel(1)
                 .currentSkin(defaultSkin)
-                .currentExp(0.0)
+                .currentExp(0)
                 .currentStage(1)
                 .build();
 

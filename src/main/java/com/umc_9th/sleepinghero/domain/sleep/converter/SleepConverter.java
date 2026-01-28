@@ -1,7 +1,9 @@
 package com.umc_9th.sleepinghero.domain.sleep.converter;
 
+import com.umc_9th.sleepinghero.domain.hero.dto.res.LevelChange;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepEndResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepRecordResponse;
+import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepReward;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
 import org.springframework.stereotype.Component;
@@ -29,22 +31,16 @@ public class SleepConverter {
     }
 
     public SleepEndResponse toDto(
-            SleepRecord sleepRecord, Long hours, Long minutes, int expGained, int currentStage
+            SleepRecord sleepRecord, long durationMinutes,
+            SleepReward reward, int currentStage
     ) {
         return new SleepEndResponse(
                 sleepRecord.getId(),
                 sleepRecord.getSleptTime(),
                 sleepRecord.getSleptTime(),
-                hours,
-                minutes,
-                expGained,
+                durationMinutes,
+                reward,
                 currentStage
         );
     }
-
-//    public SleepRecord toEntity(SleepRecordResponse sleepRecordResponse) {
-//        return SleepRecord.builder()
-//                .
-//                .build();
-//    }
 }

@@ -44,6 +44,7 @@ public class SleepGoal extends BaseEntity {
             bestStreak = currentStreak;
         }
     }
+
     public void failGoal(){
         currentStreak = 0;
     }
