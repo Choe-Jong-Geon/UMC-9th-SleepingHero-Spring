@@ -39,7 +39,18 @@ public class SleepGoal extends BaseEntity {
     private int nonSleepStreak = 0;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "member_id", unique = true, nullable = false)
     private Member member;
 
+    public void successGoal(){
+        currentStreak++;
+        if(currentStreak > bestStreak){
+            bestStreak = currentStreak;
+        }
+    }
+
+    public void failGoal(){
+        currentStreak = 0;
+        nonSleepStreak++;
+    }
 }

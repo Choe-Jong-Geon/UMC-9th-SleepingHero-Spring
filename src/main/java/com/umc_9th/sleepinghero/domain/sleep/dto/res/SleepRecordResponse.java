@@ -6,6 +6,6 @@ public record SleepRecordResponse (
         Long sleepRecordId,
         LocalDateTime sleptTime,
         LocalDateTime wokeTime,
-        boolean success
+        boolean isSuccess
 ){
 }

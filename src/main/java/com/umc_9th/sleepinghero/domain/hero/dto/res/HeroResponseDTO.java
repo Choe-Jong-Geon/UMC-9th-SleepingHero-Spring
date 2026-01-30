@@ -1,6 +1,7 @@
 package com.umc_9th.sleepinghero.domain.hero.dto.res;
 
 import com.umc_9th.sleepinghero.domain.hero.entity.Hero;
+import com.umc_9th.sleepinghero.domain.hero.util.LevelPolicy;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,8 +16,8 @@ public class HeroResponseDTO {
     public static class HeroDetailDTO {
         private Long heroId;
         private String name;
-        private int level;
-        private double currentExp;
+        private int currentLevel;
+        private int currentExp;
         private int needExp;
         private int currentStage;
     }
@@ -25,9 +26,9 @@ public class HeroResponseDTO {
         return HeroDetailDTO.builder()
                 .heroId(hero.getId())
                 .name(hero.getName())
-                .level(hero.getLevel().getId().intValue())
+                .currentLevel(hero.getCurrentStage())
                 .currentExp(hero.getCurrentExp())
-                .needExp(hero.getLevel().getNeedExp())
+                .needExp(LevelPolicy.needExp(hero.getCurrentLevel()))
                 .currentStage(hero.getCurrentStage())
                 .build();
     }

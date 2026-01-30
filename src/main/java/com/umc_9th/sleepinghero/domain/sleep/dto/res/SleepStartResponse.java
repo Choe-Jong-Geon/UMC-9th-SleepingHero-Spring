@@ -5,6 +5,6 @@ import java.time.LocalDateTime;
 public record SleepStartResponse(
         Long sleepRecordId,
         LocalDateTime sleepTime,
-        LocalDateTime wakeTime
+        boolean sleepStatus
 ){
 }

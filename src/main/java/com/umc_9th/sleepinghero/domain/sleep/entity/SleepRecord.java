@@ -24,10 +24,13 @@ public class SleepRecord extends BaseEntity {
     @Column(name = "woke_time")
     private LocalDateTime wokeTime;
 
-    private boolean success;
+    private boolean isSuccess;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    public void updateWokeTime(LocalDateTime wokeTime) {
+        this.wokeTime = wokeTime;
+    }
 }
