@@ -14,7 +14,7 @@ public enum SleepErrorCode implements BaseErrorCode {
             "SLEEP400_1",
             "현재 수면 중인 상태가 아닙니다."),
     SLEEP_GOAL_INVALID(HttpStatus.BAD_REQUEST,
-            "SLEEP400_1",
+            "SLEEP400_2",
             "요청한 수면 시간이 목표 수면 시간과 다릅니다."),
     SLEEP_RECORD_NOT_FOUND(HttpStatus.NOT_FOUND,
             "SLEEP404_1",

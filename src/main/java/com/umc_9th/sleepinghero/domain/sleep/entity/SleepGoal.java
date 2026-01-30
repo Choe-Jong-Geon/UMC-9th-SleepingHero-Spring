@@ -34,6 +34,10 @@ public class SleepGoal extends BaseEntity {
     @Builder.Default
     private int bestStreak = 0;
 
+    @Column(nullable = false, name = "non_sleep_streak")
+    @Builder.Default
+    private int nonSleepStreak = 0;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", unique = true, nullable = false)
     private Member member;
@@ -47,5 +51,6 @@ public class SleepGoal extends BaseEntity {
 
     public void failGoal(){
         currentStreak = 0;
+        nonSleepStreak++;
     }
 }

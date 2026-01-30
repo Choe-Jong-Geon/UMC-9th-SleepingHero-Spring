@@ -46,6 +46,8 @@ public class SleepServiceImpl implements SleepService {
     @Transactional(readOnly = true)
     public Page<SleepRecordResponse> getSleepRecords(int page, int size, Long memberId) {
 
+        validateMember(memberId);
+
         PageRequest request = PageRequest.of(page, size);
 
         Page<SleepRecord> records = sleepRecordRepository.findByMemberId(
@@ -97,9 +99,7 @@ public class SleepServiceImpl implements SleepService {
 
         Member member = getOrThrowMember(memberId);
 
-        if(!member.isSleepStatus()) {
-            throw new GeneralException(SleepErrorCode.SLEEP_NOT_IN_PROGRESS);
-        }
+        validateNonSleepStatus(member);
 
         Hero hero = getOrThrowHero(memberId);
 
@@ -109,13 +109,13 @@ public class SleepServiceImpl implements SleepService {
 
         LocalDateTime now = LocalDateTime.now().withNano(0);
         record.updateWokeTime(now);
-        applyGoalResult(goal,record, now); // 목표 기상시간보다 10분 이상 일찍 일어나면 실패
+        boolean isSuccess = applyGoalResult(goal,record, now); // 목표 기상시간보다 10분 이상 일찍 일어나면 실패
 
         member.endSleep();
 
         Duration d = Duration.between(record.getSleptTime(), record.getWokeTime());
 
-        SleepReward reward = getSleepReward(hero, d);
+        SleepReward reward = getSleepReward(hero, goal, d, isSuccess);
 
         return sleepConverter.toDto(
                 record,
@@ -159,20 +159,20 @@ public class SleepServiceImpl implements SleepService {
     }
 
     // 보상 생성
-    private SleepReward getSleepReward(Hero hero, Duration duration) {
+    private SleepReward getSleepReward(Hero hero, SleepGoal goal, Duration duration, boolean isSuccess) {
 
-        int gainedExp = calculateGainedExp(duration);
+        int gainedExp = calculateGainedExp(duration, goal);
 
         LevelChange level = updateLevel(hero,gainedExp);
 
-        return new SleepReward(gainedExp, level);
+        return new SleepReward(gainedExp, isSuccess, level);
     }
 
 
     // ------------------------------ 상태 변경 로직 ------------------------------
 
     // 수면 목표 결과 처리
-    private void applyGoalResult(SleepGoal goal, SleepRecord record, LocalDateTime now){
+    private boolean applyGoalResult(SleepGoal goal, SleepRecord record, LocalDateTime now){
 
         LocalDateTime slept = record.getSleptTime();
         LocalDateTime goalDateTime = LocalDateTime.of(slept.toLocalDate(), goal.getWakeTime());
@@ -184,11 +184,14 @@ public class SleepServiceImpl implements SleepService {
 
         LocalDateTime failTime = goalDateTime.minusMinutes(10);
 
-        if(failTime.isBefore(now))  // 목표시간 - 10분 이후에 기상한 경우
+        if(failTime.isBefore(now)) {  // 목표시간 - 10분 이후에 기상한 경우
             goal.successGoal();
-        else
+            return true;
+        }
+        else {
             goal.failGoal();
-
+            return false;
+        }
     }
 
     // 레벨 변경
@@ -210,6 +213,13 @@ public class SleepServiceImpl implements SleepService {
 
     // ------------------------------ 검증 로직 ------------------------------
 
+    // 회원 존재 여부 검증
+    private void validateMember(Long memberId) {
+        if(!memberRepository.existsById(memberId)) {
+            throw new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND);
+        }
+    }
+
     // 수면 시작 시간 내 요청 검증
     private void validateSleepTime(LocalDateTime now, LocalTime goalSleepTime){
         if( calculateSleepTime(now, goalSleepTime) > 10)
@@ -221,6 +231,11 @@ public class SleepServiceImpl implements SleepService {
     private void validateSleepStatus(Member member){
         if(member.isSleepStatus())
             throw new GeneralException(SleepErrorCode.SLEEP_ALREADY_IN_PROGRESS);
+    }
+
+    private void validateNonSleepStatus(Member member){
+        if(!member.isSleepStatus())
+            throw new GeneralException(SleepErrorCode.SLEEP_NOT_IN_PROGRESS);
     }
 
 
@@ -242,15 +257,21 @@ public class SleepServiceImpl implements SleepService {
     }
 
     // 획득 경험치 계산 로직
-    private int calculateGainedExp(Duration d) {
+    private int calculateGainedExp(Duration d, SleepGoal goal ) {
         long m = d.toMinutes(); // 총 분
 
+        int num = 10;
+        int den = 10;
+        if(goal.getNonSleepStreak() >= 3){ // 목표 미수행 3일연속 이상 시 디버프
+            num = 8;
+        }
+
         if (m <= 4 * 60) return 0;
-        if (m <= 5 * 60) return 20;
-        if (m <= 6 * 60) return 40;
-        if (m <= 7 * 60) return 60;
-        if (m <= 8 * 60) return 80;
-        return 100;
+        if (m <= 5 * 60) return 20 * num / den;
+        if (m <= 6 * 60) return 40 * num / den;
+        if (m <= 7 * 60) return 60 * num / den;
+        if (m <= 8 * 60) return 80 * num / den;
+        return 100 * num / den;
     }
 
 

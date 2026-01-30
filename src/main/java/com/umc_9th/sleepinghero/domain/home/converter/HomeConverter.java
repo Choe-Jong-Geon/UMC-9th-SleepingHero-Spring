@@ -13,7 +13,8 @@ public class HomeConverter {
         return new DashBoardResponse(
                 hero.getId(),
                 hero.getCurrentStage(),
-                goal.getCurrentStreak()
+                goal.getCurrentStreak(),
+                goal.getNonSleepStreak()
         );
     }
 }
