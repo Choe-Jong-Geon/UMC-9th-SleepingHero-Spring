@@ -258,22 +258,25 @@ public class SleepServiceImpl implements SleepService {
                 ));
     }
 
-    // 획득 경험치 계산 로직
-    private int calculateGainedExp(Duration d, SleepGoal goal ) {
-        long m = d.toMinutes(); // 총 분
+    // 경험치 계산 로직
+    private int calculateGainedExp(Duration d, SleepGoal goal) {
+        long m = d.toMinutes();
 
-        int num = 10;
-        int den = 10;
-        if(goal.getNonSleepStreak() >= 3){ // 목표 미수행 3일연속 이상 시 디버프
-            num = 8;
-        }
+        int baseExp;
+        if (m <= 4 * 60) baseExp = 0;
+        else if (m <= 5 * 60) baseExp = 20;
+        else if (m <= 6 * 60) baseExp = 40;
+        else if (m <= 7 * 60) baseExp = 60;
+        else if (m <= 8 * 60) baseExp = 80;
+        else baseExp = 100;
 
-        if (m <= 4 * 60) return 0;
-        if (m <= 5 * 60) return 20 * num / den;
-        if (m <= 6 * 60) return 40 * num / den;
-        if (m <= 7 * 60) return 60 * num / den;
-        if (m <= 8 * 60) return 80 * num / den;
-        return 100 * num / den;
+        // 디버프(목표 미수행 3일 이상)
+        boolean debuff = goal != null && goal.getNonSleepStreak() >= 3;
+
+        if (!debuff) return baseExp;
+
+        // 0.8배 (반올림 정책 명시: round)
+        return (int) Math.round(baseExp * 0.8);
     }
 
 
