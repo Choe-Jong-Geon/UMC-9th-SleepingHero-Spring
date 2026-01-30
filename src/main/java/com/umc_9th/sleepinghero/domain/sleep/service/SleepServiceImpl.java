@@ -61,6 +61,8 @@ public class SleepServiceImpl implements SleepService {
     @Transactional(readOnly = true)
     public SleepRecordResponse getSleepRecord(Long sleepRecordId, Long memberId) {
 
+        validateMember(memberId);
+
         SleepRecord record = getOrThrowSleepRecord(memberId, sleepRecordId);
 
         return sleepConverter.toDto(record);
