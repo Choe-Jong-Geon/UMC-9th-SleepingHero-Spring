@@ -30,7 +30,7 @@ public enum SleepErrorCode implements BaseErrorCode {
 
 
     SLEEP_SESSION_INCONSISTENT(HttpStatus.INTERNAL_SERVER_ERROR,
-            "COMMON500_1",
+            "SLEEP500_1",
             "수면 상태와 수면 기록이 일치하지 않습니다.");
 
 
