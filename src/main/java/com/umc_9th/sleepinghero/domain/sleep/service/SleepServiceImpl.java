@@ -275,7 +275,7 @@ public class SleepServiceImpl implements SleepService {
 
         if (!debuff) return baseExp;
 
-        // 0.8배 (반올림 정책 명시: round)
+        // 0.8배
         return (int) Math.round(baseExp * 0.8);
     }
 
