@@ -22,7 +22,6 @@ jobs:
       - name: Build without Test
         run: chmod +x gradlew && ./gradlew clean build -x test
 
-      # 1. JAR 파일을 EC2로 전송
       - name: Copy JAR to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
