@@ -1,18 +1,14 @@
 package com.umc_9th.sleepinghero.domain.member.controller;
 
 import com.umc_9th.sleepinghero.domain.member.dto.req.MemberRequestDTO;
-import com.umc_9th.sleepinghero.domain.member.dto.res.MemberResponseDTO;
+import com.umc_9th.sleepinghero.domain.member.dto.res.FriendRankResponse;
+import com.umc_9th.sleepinghero.domain.member.dto.res.MemberResponse;
 import com.umc_9th.sleepinghero.domain.member.service.MemberService;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import com.umc_9th.sleepinghero.domain.member.dto.req.FriendRequest;
 import com.umc_9th.sleepinghero.domain.member.dto.res.FriendResponse;
-import com.umc_9th.sleepinghero.domain.member.entity.Member;
-import com.umc_9th.sleepinghero.domain.member.login_temp.LoginUser;
-import com.umc_9th.sleepinghero.domain.member.service.MemberService;
-import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
-import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
 import com.umc_9th.sleepinghero.global.enums.Status;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -75,20 +71,28 @@ public class MemberController {
 
     @GetMapping("/users/me/tutorial")
     @Operation(summary = "튜토리얼 조회 API", description = "유저의 튜토리얼 완료 여부를 조회합니다.")
-    public ApiResponse<MemberResponseDTO.CheckTutorialDTO> checkTutorial(@AuthenticationPrincipal Long memberId
+    public ApiResponse<MemberResponse.CheckTutorialDTO> checkTutorial(@AuthenticationPrincipal Long memberId
     ) {
-        MemberResponseDTO.CheckTutorialDTO result = memberService.checkTutorial(memberId);
+        MemberResponse.CheckTutorialDTO result = memberService.checkTutorial(memberId);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
 
     @PatchMapping("/users/me/tutorial")
     @Operation(summary = "튜토리얼 완료 처리 API", description = "유저의 튜토리얼 상태를 변경합니다.")
-    public ApiResponse<MemberResponseDTO.CompleteTutorialResultDTO> completeTutorial(
+    public ApiResponse<MemberResponse.CompleteTutorialResultDTO> completeTutorial(
             @AuthenticationPrincipal Long memberId,
             @RequestBody MemberRequestDTO.CompleteTutorialDTO request
     ) {
-        MemberResponseDTO.CompleteTutorialResultDTO result = memberService.completeTutorial(memberId, request);
+        MemberResponse.CompleteTutorialResultDTO result = memberService.completeTutorial(memberId, request);
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
+    }
+
+    @GetMapping("/friends/ranking")
+    public ApiResponse<List<FriendRankResponse>> getFriendRankings(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId) {
+
+        List<FriendRankResponse> result = memberService.getFriendRanking(memberId);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 

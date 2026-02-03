@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Hero", description = "캐릭터(용사) 관련 API")
+@Tag(name = "hero-controller", description = "캐릭터(용사) 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/characters")

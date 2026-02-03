@@ -1,27 +1,28 @@
 package com.umc_9th.sleepinghero.domain.member.service;
 
 import com.umc_9th.sleepinghero.domain.member.dto.req.MemberRequestDTO;
-import com.umc_9th.sleepinghero.domain.member.dto.res.MemberResponseDTO;
+import com.umc_9th.sleepinghero.domain.member.dto.res.FriendRankResponse;
+import com.umc_9th.sleepinghero.domain.member.dto.res.MemberResponse;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
-import ch.qos.logback.core.status.ErrorStatus;
 import com.umc_9th.sleepinghero.domain.member.converter.MemberConverter;
 import com.umc_9th.sleepinghero.domain.member.dto.res.FriendResponse;
 import com.umc_9th.sleepinghero.domain.member.entity.Friend;
-import com.umc_9th.sleepinghero.domain.member.entity.Member;
-import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.FriendRepository;
-import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
-import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralErrorCode;
-import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import com.umc_9th.sleepinghero.global.enums.Status;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +31,7 @@ public class MemberService {
 
     private final FriendRepository friendRepository;
     private final MemberRepository memberRepository;
+    private final SleepRecordRepository sleepRecordRepository;
 
     public String sendFriendRequest(Long memberId, String targetNickName) {
         Member me = findMemberByIdOrThrow(memberId);
@@ -97,6 +99,45 @@ public class MemberService {
         return "친구가 삭제되었습니다.";
     }
 
+    public List<FriendRankResponse> getFriendRanking(Long memberId) {
+        try {
+            Member me = findMemberByIdOrThrow(memberId);
+
+            // 1. 친구 목록(ACCEPTED) 조회 후 나를 리스트에 추가
+            List<Member> rankingTargets = friendRepository.findAllByMemberAndStatus(me, Status.APPROVE)
+                    .stream()
+                    .map(Friend::getFriend)
+                    .collect(Collectors.toCollection(ArrayList::new));
+            rankingTargets.add(me);
+
+            // 2. 각 멤버별 총 수면 시간(초) 계산 및 캐싱
+            Map<Member, Long> memberSleepMap = rankingTargets.stream()
+                    .collect(Collectors.toMap(
+                            member -> member,
+                            this::calculateTotalSleepSeconds
+                    ));
+
+            // 3. 수면 시간 내림차순 정렬
+            List<Member> sortedMembers = rankingTargets.stream()
+                    .sorted((m1, m2) -> memberSleepMap.get(m2).compareTo(memberSleepMap.get(m1)))
+                    .collect(Collectors.toList());
+
+            // 4. 컨버터를 이용해 순위 부여 및 시간 포맷팅
+            return IntStream.range(0, sortedMembers.size())
+                    .mapToObj(i -> {
+                        Member m = sortedMembers.get(i);
+                        return MemberConverter.toFriendRankResponse(m, memberSleepMap.get(m), i + 1);
+                    })
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            // 예기치 못한 에러 발생 시 커스텀 예외 던지기
+            throw new GeneralException(MemberErrorCode.FRIEND_RANKING_ERROR);
+        }
+    }
+
+
+
     // ------------------------------------ private methode -----------------------------------------
 
     private Member findMemberByIdOrThrow(Long id) {
@@ -118,24 +159,17 @@ public class MemberService {
         }
     }
 
-
-
-
-    public MemberResponseDTO.CheckTutorialDTO checkTutorial(Long memberId) {
-
+    public MemberResponse.CheckTutorialDTO checkTutorial(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        return MemberResponseDTO.CheckTutorialDTO.builder()
+        return MemberResponse.CheckTutorialDTO.builder()
                 .finished(member.isTutorialClear())
                 .build();
     }
 
-
-
-    @Transactional
-    public MemberResponseDTO.CompleteTutorialResultDTO completeTutorial(Long memberId, MemberRequestDTO.CompleteTutorialDTO request) {
+    public MemberResponse.CompleteTutorialResultDTO completeTutorial(Long memberId, MemberRequestDTO.CompleteTutorialDTO request) {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
@@ -144,10 +178,17 @@ public class MemberService {
 
 //        Member savedMember = memberRepository.save(member);
 
-        return MemberResponseDTO.CompleteTutorialResultDTO.builder()
+        return MemberResponse.CompleteTutorialResultDTO.builder()
                 .memberId(member.getId())
                 .finished(member.isTutorialClear())
                 .build();
+    }
+
+    private Long calculateTotalSleepSeconds(Member member) {
+        return sleepRecordRepository.findAllByMemberAndSuccess(member, true).stream()
+                .filter(sr -> sr.getSleptTime() != null && sr.getWokeTime() != null)
+                .mapToLong(sr -> Duration.between(sr.getSleptTime(), sr.getWokeTime()).getSeconds())
+                .sum();
     }
 }
 
