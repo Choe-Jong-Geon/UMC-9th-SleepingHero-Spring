@@ -103,26 +103,22 @@ public class MemberService {
         try {
             Member me = findMemberByIdOrThrow(memberId);
 
-            // 1. 친구 목록(ACCEPTED) 조회 후 나를 리스트에 추가
             List<Member> rankingTargets = friendRepository.findAllByMemberAndStatus(me, Status.APPROVE)
                     .stream()
                     .map(Friend::getFriend)
                     .collect(Collectors.toCollection(ArrayList::new));
             rankingTargets.add(me);
 
-            // 2. 각 멤버별 총 수면 시간(초) 계산 및 캐싱
             Map<Member, Long> memberSleepMap = rankingTargets.stream()
                     .collect(Collectors.toMap(
                             member -> member,
                             this::calculateTotalSleepSeconds
                     ));
 
-            // 3. 수면 시간 내림차순 정렬
             List<Member> sortedMembers = rankingTargets.stream()
                     .sorted((m1, m2) -> memberSleepMap.get(m2).compareTo(memberSleepMap.get(m1)))
                     .collect(Collectors.toList());
 
-            // 4. 컨버터를 이용해 순위 부여 및 시간 포맷팅
             return IntStream.range(0, sortedMembers.size())
                     .mapToObj(i -> {
                         Member m = sortedMembers.get(i);
@@ -131,7 +127,6 @@ public class MemberService {
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
-            // 예기치 못한 에러 발생 시 커스텀 예외 던지기
             throw new GeneralException(MemberErrorCode.FRIEND_RANKING_ERROR);
         }
     }

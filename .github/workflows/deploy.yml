@@ -33,7 +33,6 @@ jobs:
           target: "/home/ubuntu/app"
           strip_components: 2
 
-      # 2. EC2에 이미 있는 deploy.sh 실행
       - name: Execute Deploy Script
         uses: appleboy/ssh-action@v1.0.3
         with:
