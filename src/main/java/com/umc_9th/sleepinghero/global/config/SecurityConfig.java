@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Swagger 관련만 일단 허용
                         .requestMatchers(swaggerUris).permitAll()
+                        .requestMatchers("/health-check").permitAll()
                         .requestMatchers("/auth/**").permitAll() //로그인 허용(임시)
                         .anyRequest().authenticated()
                 )
