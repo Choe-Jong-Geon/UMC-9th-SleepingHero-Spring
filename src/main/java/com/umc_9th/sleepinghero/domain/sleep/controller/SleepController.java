@@ -42,7 +42,7 @@ public class SleepController {
             @AuthenticationPrincipal Long memberId
     ) {
         return ResponseEntity.ok(ApiResponse.onSuccess(
-                GeneralSuccessCode.OK,sleepService.getSleepRecord(sleepRecordId,memberId)
+                GeneralSuccessCode.OK, sleepService.getSleepRecord(sleepRecordId,memberId)
         ));
     }
 
@@ -52,7 +52,7 @@ public class SleepController {
             @AuthenticationPrincipal Long memberId
     ) {
         return ResponseEntity.ok(ApiResponse.onSuccess(
-                GeneralSuccessCode.OK,sleepService.startSleep(memberId)
+                GeneralSuccessCode.OK, sleepService.startSleep(memberId)
         ));
     }
 
@@ -68,10 +68,11 @@ public class SleepController {
 
     @PostMapping("/review")
     public ResponseEntity<ApiResponse<SleepReviewResponse>> createReview(
-            @RequestBody SleepReviewRequest request
+            @RequestBody SleepReviewRequest request,
+            @AuthenticationPrincipal Long memberId
     ){
         return ResponseEntity.ok(ApiResponse.onSuccess(
-                sleepService.createReview(request)
+                GeneralSuccessCode.CREATED, sleepService.createReview(request, memberId)
         ));
     }
 }

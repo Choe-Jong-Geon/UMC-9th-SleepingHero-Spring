@@ -18,21 +18,17 @@ import com.umc_9th.sleepinghero.domain.sleep.exception.SleepErrorCode;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
-import com.umc_9th.sleepinghero.global.infra.openAi.OpenAiClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
 
 @Service
 @RequiredArgsConstructor
@@ -42,11 +38,9 @@ public class SleepServiceImpl implements SleepService {
     private final SleepGoalRepository sleepGoalRepository;
     private final MemberRepository memberRepository;
     private final HeroRepository heroRepository;
-    private final OpenAiClient client;
+    private final SleepFeedBackService sleepFeedBackService;
 
     private final SleepConverter sleepConverter;
-
-    private final String url = "https://api.openai.com/v1/chat/completions";
 
     @Override
     @Transactional(readOnly = true)
@@ -73,7 +67,6 @@ public class SleepServiceImpl implements SleepService {
 
         return sleepConverter.toDto(record);
     }
-
 
     @Override
     @Transactional
@@ -134,11 +127,24 @@ public class SleepServiceImpl implements SleepService {
     }
 
     @Override
-    public SleepReviewResponse createReview(SleepReviewRequest request) {
+    public SleepReviewResponse createReview(SleepReviewRequest request, Long memberId) {
 
+        validateMember(memberId);
 
+        SleepGoal goal = getOrThrowGoal(memberId);
+        SleepRecord record = getOrThrowSleepRecord(memberId);
+
+        validateCurrentRecord(request.id(), record.getId());
+
+        long sleepDuration = Duration.between(record.getSleptTime(), record.getWokeTime()).toMinutes();
+        long goalDuration = durationMinutes(goal.getSleepTime(), goal.getWakeTime());
+
+        sleepFeedBackService.feedback(
+                sleepDuration, goalDuration, goal.getCurrentStreak(), request
+        );
 
         return null;
+
     }
 
 
@@ -238,7 +244,7 @@ public class SleepServiceImpl implements SleepService {
 
     // 수면 시작 시간 내 요청 검증
     private void validateSleepTime(LocalDateTime now, LocalTime goalSleepTime){
-        if( calculateSleepTime(now, goalSleepTime) > 10)
+        if( calculateNearestGoalTimeMinutes(now, goalSleepTime) > 10)
             throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INVALID);
 
     }
@@ -254,11 +260,16 @@ public class SleepServiceImpl implements SleepService {
             throw new GeneralException(SleepErrorCode.SLEEP_NOT_IN_PROGRESS);
     }
 
+    private void validateCurrentRecord(Long recordId, Long otherRecordId){
+        if(recordId.equals(otherRecordId)){
+            throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INVALID);
+        }
+    }
 
     // ------------------------------ 계산 로직 ------------------------------
 
     // 허용 범위 내 시간 계산
-    private long calculateSleepTime(LocalDateTime now, LocalTime goalTime) {
+    private long calculateNearestGoalTimeMinutes(LocalDateTime now, LocalTime goalTime) {
 
         LocalDateTime today = LocalDateTime.of(now.toLocalDate(), goalTime);
         LocalDateTime yesterday = today.minusDays(1);
@@ -292,6 +303,20 @@ public class SleepServiceImpl implements SleepService {
         // 0.8배
         return (int) Math.round(baseExp * 0.8);
     }
+
+    private long durationMinutes(LocalTime start, LocalTime end) {
+        LocalDate today = LocalDate.now();
+
+        LocalDateTime startDT = LocalDateTime.of(today, start);
+        LocalDateTime endDT   = LocalDateTime.of(today, end);
+
+        if (end.isBefore(start)) {
+            endDT = endDT.plusDays(1); // 자정 넘김 처리
+        }
+
+        return Duration.between(startDT, endDT).toMinutes();
+    }
+
 
 
 }

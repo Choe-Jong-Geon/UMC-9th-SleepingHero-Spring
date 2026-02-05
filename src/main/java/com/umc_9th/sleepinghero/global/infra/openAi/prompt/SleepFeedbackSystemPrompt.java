@@ -15,13 +15,12 @@ public class SleepFeedbackSystemPrompt {
         - Be concise and actionable
 
         OUTPUT FORMAT:
-        Respond ONLY in valid JSON.
-        Do not include markdown or explanations.
-
+        - Respond ONLY in valid JSON.
         {
           "summary": "string",
           "positives": ["string"],
-          "improvements": ["string"]
+          "improvements": ["string"],
+          "cheering" : "string"
         }
         """;
     }

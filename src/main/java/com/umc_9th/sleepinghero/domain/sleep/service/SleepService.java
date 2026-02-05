@@ -17,7 +17,7 @@ public interface SleepService {
 
     SleepEndResponse endSleep(Long memberId);
 
-    SleepReviewResponse createReview(SleepReviewRequest request);
+    SleepReviewResponse createReview(SleepReviewRequest request, Long memberId);
 
     //
 }

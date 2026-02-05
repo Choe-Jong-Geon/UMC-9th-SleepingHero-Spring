@@ -1,6 +1,7 @@
 package com.umc_9th.sleepinghero.global.infra.openAi.dto.req;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
