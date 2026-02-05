@@ -8,6 +8,7 @@ import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
 import com.umc_9th.sleepinghero.domain.sleep.service.SleepService;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -68,7 +69,7 @@ public class SleepController {
 
     @PostMapping("/review")
     public ResponseEntity<ApiResponse<SleepReviewResponse>> createReview(
-            @RequestBody SleepReviewRequest request,
+            @RequestBody @Valid SleepReviewRequest request,
             @AuthenticationPrincipal Long memberId
     ){
         return ResponseEntity.ok(ApiResponse.onSuccess(

@@ -5,6 +5,8 @@ import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.code.BaseErrorCode;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralErrorCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -25,7 +27,25 @@ public class GeneralExceptionAdvice {
                 );
     }
 
-    // 그 외의 정의되지 않은 모든 예외 처리
+    // Validation 관련 ----------------------------------------------------
+
+    @ExceptionHandler({
+            MethodArgumentNotValidException.class,
+    })
+    public ResponseEntity<ApiResponse<Void>> handleValidationExceptions(
+            Exception ex
+    ) {
+        BaseErrorCode code = GeneralErrorCode.INVALID_INPUT_VALUE;
+        return ResponseEntity.status(code.getStatus())
+                .body(ApiResponse.onFailure(
+                                code,
+                        null
+                        )
+                );
+    }
+
+
+        // 그 외의 정의되지 않은 모든 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<String>> handleException(
             Exception ex
