@@ -22,6 +22,21 @@ public class HeroResponseDTO {
         private int currentStage;
     }
 
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SearchHeroResultDTO {
+        private Long memberId;
+        private Long heroId;
+        private String heroName;
+        private int level;
+        private Long skinId;
+        private int continuousSleepDays;
+        private int totalSleepHour;
+    }
+
+
     public static HeroDetailDTO toDetailDTO(Hero hero) {
         return HeroDetailDTO.builder()
                 .heroId(hero.getId())
@@ -32,5 +47,7 @@ public class HeroResponseDTO {
                 .currentStage(hero.getCurrentStage())
                 .build();
     }
+
+
 
 }

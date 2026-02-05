@@ -7,4 +7,6 @@ import java.util.Optional;
 public interface HeroRepository extends JpaRepository<Hero, Long> {
 
     Optional<Hero> findByMemberId(Long memberId);
+    Optional<Hero> findByName(String name);
+    boolean existsByName(String name);
 }

@@ -11,7 +11,7 @@ public enum HeroErrorCode implements BaseErrorCode {
 
     HERO_NOT_FOUND(HttpStatus.NOT_FOUND, "HERO404_1", "존재하지 않는 캐릭터입니다."),
     ALREADY_EXIST_HERO(HttpStatus.BAD_REQUEST, "HERO400_1", "이미 캐릭터를 보유하고 있습니다."),
-
+    DUPLICATE_HERO_NAME(HttpStatus.CONFLICT, "HERO409_1", "이미 사용 중인 이름입니다."),
     // 5**
     INVALID_LEVEL_STATE(HttpStatus.INTERNAL_SERVER_ERROR,
             "INVALID_LEVEL_STATE",
