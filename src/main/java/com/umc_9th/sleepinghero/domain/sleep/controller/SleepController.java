@@ -1,5 +1,7 @@
 package com.umc_9th.sleepinghero.domain.sleep.controller;
 
+import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
+import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepReviewResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepEndResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepRecordResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
@@ -61,6 +63,15 @@ public class SleepController {
     ) {
         return ResponseEntity.ok(ApiResponse.onSuccess(
                 GeneralSuccessCode.OK,sleepService.endSleep(memberId)
+        ));
+    }
+
+    @PostMapping("/review")
+    public ResponseEntity<ApiResponse<SleepReviewResponse>> createReview(
+            @RequestBody SleepReviewRequest request
+    ){
+        return ResponseEntity.ok(ApiResponse.onSuccess(
+                sleepService.createReview(request)
         ));
     }
 }

@@ -10,25 +10,29 @@ import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.sleep.converter.SleepConverter;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepEndResponse;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepRecordResponse;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepReward;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
+import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
+import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepGoal;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
 import com.umc_9th.sleepinghero.domain.sleep.exception.SleepErrorCode;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
+import com.umc_9th.sleepinghero.global.infra.openAi.OpenAiClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -38,9 +42,11 @@ public class SleepServiceImpl implements SleepService {
     private final SleepGoalRepository sleepGoalRepository;
     private final MemberRepository memberRepository;
     private final HeroRepository heroRepository;
+    private final OpenAiClient client;
 
     private final SleepConverter sleepConverter;
 
+    private final String url = "https://api.openai.com/v1/chat/completions";
 
     @Override
     @Transactional(readOnly = true)
@@ -125,6 +131,14 @@ public class SleepServiceImpl implements SleepService {
                 reward,
                 hero.getCurrentStage()
         );
+    }
+
+    @Override
+    public SleepReviewResponse createReview(SleepReviewRequest request) {
+
+
+
+        return null;
     }
 
 
@@ -229,7 +243,7 @@ public class SleepServiceImpl implements SleepService {
 
     }
 
-    //
+    // 수면 상태 검증
     private void validateSleepStatus(Member member){
         if(member.isSleepStatus())
             throw new GeneralException(SleepErrorCode.SLEEP_ALREADY_IN_PROGRESS);
