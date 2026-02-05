@@ -49,4 +49,14 @@ public class HeroController {
     ) {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, heroService.updateHeroName(memberId, request));
     }
+
+    @GetMapping("/search")
+    @Operation(summary = "친구 탐색(용사 검색) API", description = "이름으로 다른 유저의 용사 정보를 조회합니다.")
+    public ApiResponse<HeroResponseDTO.SearchHeroResultDTO> searchHero(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
+            @RequestParam(name = "name") String name
+    ) {
+        HeroResponseDTO.SearchHeroResultDTO result = heroService.searchHeroByName(name);
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
+    }
 }
