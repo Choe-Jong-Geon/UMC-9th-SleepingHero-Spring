@@ -18,6 +18,7 @@ public interface SleepRecordRepository extends JpaRepository<SleepRecord, Long> 
     Page<SleepRecord> findByMemberId(Long memberId, Pageable pageable);
     Optional<SleepRecord> findByIdAndMemberId(Long id, Long memberId);
     Optional<SleepRecord> findTopByMemberIdAndWokeTimeIsNullOrderBySleptTimeDesc(Long memberId);
+    Optional<SleepRecord> findTopByMemberIdAndWokeTimeIsNotNullOrderByWokeTimeDesc(Long memberId);
     List<SleepRecord> findAllByMemberAndIsSuccess(Member member, boolean b);
 
 }
