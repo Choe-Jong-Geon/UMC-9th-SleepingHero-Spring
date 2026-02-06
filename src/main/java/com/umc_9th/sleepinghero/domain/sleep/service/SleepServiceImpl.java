@@ -9,14 +9,17 @@ import com.umc_9th.sleepinghero.domain.hero.util.LevelPolicy;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
+import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBackResponse;
 import com.umc_9th.sleepinghero.domain.sleep.converter.SleepConverter;
 import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepGoal;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepReview;
 import com.umc_9th.sleepinghero.domain.sleep.exception.SleepErrorCode;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepReviewRepository;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,8 +39,10 @@ public class SleepServiceImpl implements SleepService {
 
     private final SleepRecordRepository sleepRecordRepository;
     private final SleepGoalRepository sleepGoalRepository;
+    private final SleepReviewRepository sleepReviewRepository;
     private final MemberRepository memberRepository;
     private final HeroRepository heroRepository;
+
     private final SleepFeedBackService sleepFeedBackService;
 
     private final SleepConverter sleepConverter;
@@ -127,25 +132,32 @@ public class SleepServiceImpl implements SleepService {
     }
 
     @Override
-    public SleepReviewResponse createReview(SleepReviewRequest request, Long memberId) {
+    public AiSleepFeedBackResponse createReview(SleepReviewRequest request, Long memberId) {
 
         validateMember(memberId);
+        validateSleepRecord(request.recordId());
 
         SleepGoal goal = getOrThrowGoal(memberId);
         SleepRecord record = getOrThrowSleepRecord(memberId);
 
-        validateCurrentRecord(request.id(), record.getId());
+        equalsSleepRecord(request.recordId(), record.getId());
+
+        sleepReviewRepository.save(SleepReview.builder()
+                .star(request.star())
+                .comment(request.comment())
+                .sleepRecord(record)
+                .build());
 
         long sleepDuration = Duration.between(record.getSleptTime(), record.getWokeTime()).toMinutes();
         long goalDuration = durationMinutes(goal.getSleepTime(), goal.getWakeTime());
 
-        sleepFeedBackService.feedback(
+        return sleepFeedBackService.feedback(
                 sleepDuration, goalDuration, goal.getCurrentStreak(), request
         );
 
-        return null;
 
     }
+
 
 
     // ------------------------- private -----------------------------
@@ -260,10 +272,15 @@ public class SleepServiceImpl implements SleepService {
             throw new GeneralException(SleepErrorCode.SLEEP_NOT_IN_PROGRESS);
     }
 
-    private void validateCurrentRecord(Long recordId, Long otherRecordId){
+    private void equalsSleepRecord(Long recordId, Long otherRecordId){
         if(recordId.equals(otherRecordId)){
             throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INVALID);
         }
+    }
+
+    private void validateSleepRecord(Long recordId){
+        if(!sleepRecordRepository.existsById(recordId))
+            throw new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND);
     }
 
     // ------------------------------ 계산 로직 ------------------------------

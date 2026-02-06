@@ -1,14 +1,9 @@
 package com.umc_9th.sleepinghero.domain.sleep.converter;
 
-import com.umc_9th.sleepinghero.domain.hero.dto.res.LevelChange;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepEndResponse;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepRecordResponse;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepReward;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
+import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBackResponse;
+import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
 
 @Component
 public class SleepConverter {
@@ -41,6 +36,12 @@ public class SleepConverter {
                 durationMinutes,
                 reward,
                 currentStage
+        );
+    }
+
+    public SleepReviewResponse toDto(long id, AiSleepFeedBackResponse feedBack){
+        return new SleepReviewResponse(
+                id, feedBack
         );
     }
 }

@@ -1,7 +1,7 @@
 package com.umc_9th.sleepinghero.domain.sleep.service;
 
+import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBackResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepReviewResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepEndResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepRecordResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
@@ -17,7 +17,7 @@ public interface SleepService {
 
     SleepEndResponse endSleep(Long memberId);
 
-    SleepReviewResponse createReview(SleepReviewRequest request, Long memberId);
+    AiSleepFeedBackResponse createReview(SleepReviewRequest request, Long memberId);
 
     //
 }

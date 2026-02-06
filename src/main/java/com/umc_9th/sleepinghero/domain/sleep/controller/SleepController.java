@@ -1,7 +1,7 @@
 package com.umc_9th.sleepinghero.domain.sleep.controller;
 
+import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBackResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepReviewResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepEndResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepRecordResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
@@ -68,7 +68,7 @@ public class SleepController {
     }
 
     @PostMapping("/review")
-    public ResponseEntity<ApiResponse<SleepReviewResponse>> createReview(
+    public ResponseEntity<ApiResponse<AiSleepFeedBackResponse>> createReview(
             @RequestBody @Valid SleepReviewRequest request,
             @AuthenticationPrincipal Long memberId
     ){
