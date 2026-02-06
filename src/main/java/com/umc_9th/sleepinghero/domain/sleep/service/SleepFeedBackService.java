@@ -1,12 +1,13 @@
 package com.umc_9th.sleepinghero.domain.sleep.service;
 
-import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBackResponse;
-import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
+import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBack;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepReview;
+
 
 public interface SleepFeedBackService {
 
 
-    AiSleepFeedBackResponse feedback(
-            long sleepDuration, long goalDuration, int sleepStreak, SleepReviewRequest request
+    AiSleepFeedBack feedback(
+            long sleepDuration, long goalDuration, int sleepStreak, SleepReview review
     );
 }

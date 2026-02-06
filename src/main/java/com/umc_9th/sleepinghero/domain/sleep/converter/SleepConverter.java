@@ -1,8 +1,10 @@
 package com.umc_9th.sleepinghero.domain.sleep.converter;
 
-import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBackResponse;
+import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBack;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepFeedBack;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepReview;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -39,9 +41,13 @@ public class SleepConverter {
         );
     }
 
-    public SleepReviewResponse toDto(long id, AiSleepFeedBackResponse feedBack){
+    public SleepReviewResponse toDto(Long reviewId, AiSleepFeedBack feedBack) {
         return new SleepReviewResponse(
-                id, feedBack
+                reviewId,
+                feedBack.summary(),
+                feedBack.positives(),
+                feedBack.improvements(),
+                feedBack.cheering()
         );
     }
 }

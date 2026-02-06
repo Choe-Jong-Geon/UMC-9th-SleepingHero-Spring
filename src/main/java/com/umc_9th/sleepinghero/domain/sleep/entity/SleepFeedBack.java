@@ -42,4 +42,5 @@ public class SleepFeedBack extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sleep_review_id", nullable = false, unique = true)
     private SleepReview sleepReview;
+
 }

@@ -9,7 +9,7 @@ import com.umc_9th.sleepinghero.domain.hero.util.LevelPolicy;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
-import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBackResponse;
+import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBack;
 import com.umc_9th.sleepinghero.domain.sleep.converter.SleepConverter;
 import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
@@ -109,7 +109,7 @@ public class SleepServiceImpl implements SleepService {
 
         Hero hero = getOrThrowHero(memberId);
 
-        SleepRecord record = getOrThrowSleepRecord(memberId);
+        SleepRecord record = getOrThrowNotWakeRecord(memberId);
 
         SleepGoal goal = getOrThrowGoal(memberId);
 
@@ -132,32 +132,65 @@ public class SleepServiceImpl implements SleepService {
     }
 
     @Override
-    public AiSleepFeedBackResponse createReview(SleepReviewRequest request, Long memberId) {
+    public SleepReviewResponse createReview(SleepReviewRequest request, Long memberId) {
 
         validateMember(memberId);
         validateSleepRecord(request.recordId());
 
         SleepGoal goal = getOrThrowGoal(memberId);
-        SleepRecord record = getOrThrowSleepRecord(memberId);
+        SleepRecord record = getOrThrowWakeRecord(memberId);
 
-        equalsSleepRecord(request.recordId(), record.getId());
+        System.out.println(request.recordId() + " " + record.getId());
 
-        sleepReviewRepository.save(SleepReview.builder()
+        validateDifferentSleepRecord(request.recordId(), record.getId());
+
+        SleepReview review = SleepReview.builder()
                 .star(request.star())
                 .comment(request.comment())
                 .sleepRecord(record)
-                .build());
+                .build();
+
+        sleepReviewRepository.save(review);
 
         long sleepDuration = Duration.between(record.getSleptTime(), record.getWokeTime()).toMinutes();
         long goalDuration = durationMinutes(goal.getSleepTime(), goal.getWakeTime());
 
-        return sleepFeedBackService.feedback(
-                sleepDuration, goalDuration, goal.getCurrentStreak(), request
+        AiSleepFeedBack feedBack =sleepFeedBackService.feedback(
+                sleepDuration, goalDuration, goal.getCurrentStreak(), review
         );
+
+        return sleepConverter.toDto(review.getId(), feedBack);
 
 
     }
 
+    @Override
+    public long testRecord(Long memberId) {
+
+        Member member = getOrThrowMember(memberId);
+
+        if(!sleepGoalRepository.existsByMemberId(memberId)) {
+            SleepGoal goal = SleepGoal.builder()
+                    .member(member)
+                    .sleepTime(LocalTime.now().withNano(0))
+                    .wakeTime(LocalTime.now().withNano(0).plusHours(3))
+                    .build();
+
+            sleepGoalRepository.save(goal);
+        }
+
+        SleepRecord record = SleepRecord.builder()
+                .sleptTime(LocalDateTime.now().withNano(0))
+                .wokeTime(LocalDateTime.now().withNano(0).plusHours(3))
+                .isSuccess(true)
+                .member(member)
+                .build();
+
+        sleepRecordRepository.save(record);
+
+        return record.getId();
+
+    }
 
 
     // ------------------------- private -----------------------------
@@ -181,9 +214,16 @@ public class SleepServiceImpl implements SleepService {
     }
 
     // 종료되지 않은 제일 최신 기록 조회
-    private SleepRecord getOrThrowSleepRecord(Long memberId) {
+    private SleepRecord getOrThrowNotWakeRecord(Long memberId) {
         return sleepRecordRepository
                 .findTopByMemberIdAndWokeTimeIsNullOrderBySleptTimeDesc(memberId)
+                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
+    }
+
+    // 종료되지 않은 제일 최신 기록 조회
+    private SleepRecord getOrThrowWakeRecord(Long memberId) {
+        return sleepRecordRepository
+                .findTopByMemberIdAndWokeTimeIsNotNullOrderByWokeTimeDesc(memberId)
                 .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
     }
 
@@ -272,8 +312,8 @@ public class SleepServiceImpl implements SleepService {
             throw new GeneralException(SleepErrorCode.SLEEP_NOT_IN_PROGRESS);
     }
 
-    private void equalsSleepRecord(Long recordId, Long otherRecordId){
-        if(recordId.equals(otherRecordId)){
+    private void validateDifferentSleepRecord(Long recordId, Long otherRecordId){
+        if(otherRecordId == null && recordId == null){
             throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INVALID);
         }
     }

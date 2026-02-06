@@ -2,9 +2,14 @@ package com.umc_9th.sleepinghero.domain.sleep.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBackResponse;
 import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBackContext;
-import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
+import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBack;
+import com.umc_9th.sleepinghero.domain.sleep.converter.SleepConverter;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepFeedBack;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepReview;
+import com.umc_9th.sleepinghero.domain.sleep.exception.SleepErrorCode;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepFeedBackRepository;
+import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import com.umc_9th.sleepinghero.global.infra.openAi.OpenAiClient;
 import com.umc_9th.sleepinghero.global.infra.openAi.dto.req.OpenAiRequest;
 import com.umc_9th.sleepinghero.global.infra.openAi.dto.res.OpenAiResponse;
@@ -13,12 +18,15 @@ import com.umc_9th.sleepinghero.global.infra.openAi.prompt.SleepFeedbackUserProm
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SleepFeedBackServiceImpl implements SleepFeedBackService {
+
+    private final SleepFeedBackRepository sleepFeedBackRepository;
 
     private final ObjectMapper objectMapper;
 
@@ -27,43 +35,116 @@ public class SleepFeedBackServiceImpl implements SleepFeedBackService {
     private final SleepFeedbackUserPrompt userPrompt;
 
     @Override
-    public AiSleepFeedBackResponse feedback(
-            long sleepDuration, long goalDuration, int sleepStreak, SleepReviewRequest request
+    public AiSleepFeedBack feedback(
+            long sleepDuration,
+            long goalDuration,
+            int sleepStreak,
+            SleepReview review
     ) {
 
-        AiSleepFeedBackContext context =
-                AiSleepFeedBackContext.of(sleepDuration, goalDuration, sleepStreak, request);
+        validateSleepFeedBack(review);
 
-        OpenAiRequest openAiRequest =
-                OpenAiRequest.from(systemPrompt.value(), userPrompt.build(context));
-
-        OpenAiResponse response = client.chat(openAiRequest);
+        OpenAiRequest openAiRequest = generateAiRequest(
+                sleepDuration, goalDuration, sleepStreak, review
+        );
 
         try {
-            return parseResponse(response.getContent());
+            return generateSleepFeedBack(openAiRequest, review);
+
         } catch (Exception e) {
-            log.warn("AI 응답 파싱 실패, 재요청 시도");
-            OpenAiResponse retry = client.chat(openAiRequest);
-            return safeParseResponse(retry.getContent());
+            return fallBack(review, e);
+        }
+    }
+
+    // ---------------- private ----------------
+
+
+    // 파싱
+
+    private AiSleepFeedBack parseResponse(String content)
+            throws JsonProcessingException {
+
+        AiSleepFeedBack response =
+                objectMapper.readValue(content, AiSleepFeedBack.class);
+
+        log.info("AI Feedback :\n{}",
+                objectMapper.writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(response)
+        );
+
+        return response;
+    }
+
+
+    // 검증
+
+    private void validateSleepFeedBack(SleepReview review){
+        if (sleepFeedBackRepository.existsBySleepReview(review)) {
+            throw new GeneralException(SleepErrorCode.SLEEP_FEEDBACK_ALREADY_EXISTS);
         }
     }
 
 
-    // ------------------------------ private ------------------------------
+    // 생성
 
+    private OpenAiRequest generateAiRequest(
+            long sleepDuration,
+            long goalDuration,
+            int sleepStreak,
+            SleepReview review
+    ) {
+        AiSleepFeedBackContext context =
+                AiSleepFeedBackContext.of(
+                        sleepDuration,
+                        goalDuration,
+                        sleepStreak,
+                        review.getStar(),
+                        review.getComment()
+                );
 
-    private AiSleepFeedBackResponse parseResponse(String content) throws JsonProcessingException {
-        AiSleepFeedBackResponse feedback = objectMapper.readValue(content, AiSleepFeedBackResponse.class);
-        log.info(objectMapper.writerWithDefaultPrettyPrinter()
-                .writeValueAsString(feedback));
-        return feedback;
+        return OpenAiRequest.from(
+                        systemPrompt.value(),
+                        userPrompt.build(context)
+                );
     }
 
-    private AiSleepFeedBackResponse safeParseResponse(String content) {
-        try {
-            return parseResponse(content);
-        }catch (Exception e) {
-            return AiSleepFeedBackResponse.fallBack();
-        }
+    private AiSleepFeedBack generateSleepFeedBack(
+            OpenAiRequest openAiRequest, SleepReview review
+    ) throws JsonProcessingException
+    {
+        OpenAiResponse aiResponse = client.chat(openAiRequest);
+
+        AiSleepFeedBack feedBack = parseResponse(aiResponse.getContent());
+
+        saveFeedBack(feedBack, review);
+
+        return feedBack;
+    }
+
+
+    // 폴백
+
+    private AiSleepFeedBack fallBack(SleepReview review, Exception e){
+        log.warn("AI 응답 실패 → fallback 저장", e);
+
+        AiSleepFeedBack fallback =
+                AiSleepFeedBack.fallBack();
+
+        saveFeedBack(fallback, review);
+
+        return fallback;
+    }
+
+
+    // 저장
+
+    private void saveFeedBack(AiSleepFeedBack feedBack, SleepReview review) {
+        SleepFeedBack.builder()
+                .summary(feedBack.summary())
+                .positives(feedBack.positives())
+                .improvements(feedBack.improvements())
+                .cheering(feedBack.cheering())
+                .sleepReview(review)
+                .build();
     }
 }

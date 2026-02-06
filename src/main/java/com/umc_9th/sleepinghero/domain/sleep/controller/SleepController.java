@@ -1,9 +1,10 @@
 package com.umc_9th.sleepinghero.domain.sleep.controller;
 
-import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBackResponse;
+import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBack;
 import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepEndResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepRecordResponse;
+import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepReviewResponse;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
 import com.umc_9th.sleepinghero.domain.sleep.service.SleepService;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
@@ -68,7 +69,7 @@ public class SleepController {
     }
 
     @PostMapping("/review")
-    public ResponseEntity<ApiResponse<AiSleepFeedBackResponse>> createReview(
+    public ResponseEntity<ApiResponse<SleepReviewResponse>> createReview(
             @RequestBody @Valid SleepReviewRequest request,
             @AuthenticationPrincipal Long memberId
     ){
@@ -76,4 +77,15 @@ public class SleepController {
                 GeneralSuccessCode.CREATED, sleepService.createReview(request, memberId)
         ));
     }
+
+    @PostMapping("/test/record")
+    public ResponseEntity<ApiResponse<Long>> testRecord(
+            @AuthenticationPrincipal Long memberId
+    ){
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(
+                GeneralSuccessCode.CREATED, sleepService.testRecord(memberId)
+        ));
+    }
+
 }

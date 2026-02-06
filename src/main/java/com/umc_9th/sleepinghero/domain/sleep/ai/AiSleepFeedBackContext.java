@@ -6,14 +6,15 @@ public record AiSleepFeedBackContext(
         long sleepDuration,
         long goalDuration,
         int sleepStreak,
-        SleepReviewRequest review
+        int star,
+        String comment
 ){
     public static AiSleepFeedBackContext of(
             long sleepDuration, long goalDuration
-            , int sleepStreak, SleepReviewRequest review) {
+            , int sleepStreak, int star, String comment) {
 
         return new AiSleepFeedBackContext(
-                sleepDuration, goalDuration, sleepStreak, review
+                sleepDuration, goalDuration, sleepStreak, star, comment
         );
     }
 }
