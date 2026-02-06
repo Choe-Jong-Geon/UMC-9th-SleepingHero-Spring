@@ -11,6 +11,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class OpenAiConfig {
 
     @Bean
+    public WebClient.Builder webClientBuilder() {
+        return WebClient.builder();
+    }
+
+    @Bean
     public WebClient openAiWebClient(
             WebClient.Builder builder,
             @Value("${openai.api-key}") String apiKey
