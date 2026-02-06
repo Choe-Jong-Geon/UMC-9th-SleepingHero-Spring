@@ -78,14 +78,5 @@ public class SleepController {
         ));
     }
 
-    @PostMapping("/test/record")
-    public ResponseEntity<ApiResponse<Long>> testRecord(
-            @AuthenticationPrincipal Long memberId
-    ){
-
-        return ResponseEntity.ok(ApiResponse.onSuccess(
-                GeneralSuccessCode.CREATED, sleepService.testRecord(memberId)
-        ));
-    }
 
 }

@@ -4,10 +4,15 @@ import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.enums.OauthProvider;
 import com.umc_9th.sleepinghero.domain.member.enums.Role;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
+import com.umc_9th.sleepinghero.domain.sleep.service.SleepService;
+import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
+import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
 import com.umc_9th.sleepinghero.global.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +24,7 @@ public class TestContoller {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberRepository memberRepository;
+    private final SleepService sleepService;
 
     @GetMapping("/health-check")
     @Operation(summary = "서버 연결 체크")
@@ -39,6 +45,20 @@ public class TestContoller {
                                 .build()
                 ));
         return jwtTokenProvider.createAccessToken(memberId, Role.ROLE_USER);
+    }
+
+    @PostMapping("/test/record")
+    @Operation(
+            summary = "테스트용 목표 수면시간 및 수면 기록 자동 생성 api",
+            description = "AI 피드백 생성을 위한 목표 설정 및 수면 기록 자동 생성"
+    )
+    public ResponseEntity<ApiResponse<Long>> testRecord(
+            @AuthenticationPrincipal Long memberId
+    ){
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(
+                GeneralSuccessCode.CREATED, sleepService.testRecord(memberId)
+        ));
     }
 
 }
