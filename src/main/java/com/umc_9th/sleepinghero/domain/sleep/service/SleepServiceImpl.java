@@ -9,16 +9,17 @@ import com.umc_9th.sleepinghero.domain.hero.util.LevelPolicy;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
+import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBack;
 import com.umc_9th.sleepinghero.domain.sleep.converter.SleepConverter;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepEndResponse;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepRecordResponse;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepReward;
-import com.umc_9th.sleepinghero.domain.sleep.dto.res.SleepStartResponse;
+import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
+import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepGoal;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepReview;
 import com.umc_9th.sleepinghero.domain.sleep.exception.SleepErrorCode;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepReviewRepository;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,8 +28,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+
 
 @Service
 @RequiredArgsConstructor
@@ -36,11 +39,13 @@ public class SleepServiceImpl implements SleepService {
 
     private final SleepRecordRepository sleepRecordRepository;
     private final SleepGoalRepository sleepGoalRepository;
+    private final SleepReviewRepository sleepReviewRepository;
     private final MemberRepository memberRepository;
     private final HeroRepository heroRepository;
 
-    private final SleepConverter sleepConverter;
+    private final SleepFeedBackService sleepFeedBackService;
 
+    private final SleepConverter sleepConverter;
 
     @Override
     @Transactional(readOnly = true)
@@ -67,7 +72,6 @@ public class SleepServiceImpl implements SleepService {
 
         return sleepConverter.toDto(record);
     }
-
 
     @Override
     @Transactional
@@ -105,7 +109,7 @@ public class SleepServiceImpl implements SleepService {
 
         Hero hero = getOrThrowHero(memberId);
 
-        SleepRecord record = getOrThrowSleepRecord(memberId);
+        SleepRecord record = getOrThrowNotWakeRecord(memberId);
 
         SleepGoal goal = getOrThrowGoal(memberId);
 
@@ -125,6 +129,67 @@ public class SleepServiceImpl implements SleepService {
                 reward,
                 hero.getCurrentStage()
         );
+    }
+
+    @Override
+    public SleepReviewResponse createReview(SleepReviewRequest request, Long memberId) {
+
+        validateMember(memberId);
+        validateSleepRecord(request.recordId());
+
+        SleepGoal goal = getOrThrowGoal(memberId);
+        SleepRecord record = getOrThrowWakeRecord(memberId);
+
+        System.out.println(request.recordId() + " " + record.getId());
+
+        validateDifferentSleepRecord(request.recordId(), record.getId());
+
+        SleepReview review = SleepReview.builder()
+                .star(request.star())
+                .comment(request.comment())
+                .sleepRecord(record)
+                .build();
+
+        sleepReviewRepository.save(review);
+
+        long sleepDuration = Duration.between(record.getSleptTime(), record.getWokeTime()).toMinutes();
+        long goalDuration = durationMinutes(goal.getSleepTime(), goal.getWakeTime());
+
+        AiSleepFeedBack feedBack =sleepFeedBackService.feedback(
+                sleepDuration, goalDuration, goal.getCurrentStreak(), review
+        );
+
+        return sleepConverter.toDto(review.getId(), feedBack);
+
+
+    }
+
+    @Override
+    public long testRecord(Long memberId) {
+
+        Member member = getOrThrowMember(memberId);
+
+        if(!sleepGoalRepository.existsByMemberId(memberId)) {
+            SleepGoal goal = SleepGoal.builder()
+                    .member(member)
+                    .sleepTime(LocalTime.now().withNano(0))
+                    .wakeTime(LocalTime.now().withNano(0).plusHours(3))
+                    .build();
+
+            sleepGoalRepository.save(goal);
+        }
+
+        SleepRecord record = SleepRecord.builder()
+                .sleptTime(LocalDateTime.now().withNano(0))
+                .wokeTime(LocalDateTime.now().withNano(0).plusHours(3))
+                .isSuccess(true)
+                .member(member)
+                .build();
+
+        sleepRecordRepository.save(record);
+
+        return record.getId();
+
     }
 
 
@@ -149,9 +214,16 @@ public class SleepServiceImpl implements SleepService {
     }
 
     // 종료되지 않은 제일 최신 기록 조회
-    private SleepRecord getOrThrowSleepRecord(Long memberId) {
+    private SleepRecord getOrThrowNotWakeRecord(Long memberId) {
         return sleepRecordRepository
                 .findTopByMemberIdAndWokeTimeIsNullOrderBySleptTimeDesc(memberId)
+                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
+    }
+
+    // 종료되지 않은 제일 최신 기록 조회
+    private SleepRecord getOrThrowWakeRecord(Long memberId) {
+        return sleepRecordRepository
+                .findTopByMemberIdAndWokeTimeIsNotNullOrderByWokeTimeDesc(memberId)
                 .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
     }
 
@@ -224,12 +296,12 @@ public class SleepServiceImpl implements SleepService {
 
     // 수면 시작 시간 내 요청 검증
     private void validateSleepTime(LocalDateTime now, LocalTime goalSleepTime){
-        if( calculateSleepTime(now, goalSleepTime) > 10)
+        if( calculateNearestGoalTimeMinutes(now, goalSleepTime) > 10)
             throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INVALID);
 
     }
 
-    //
+    // 수면 상태 검증
     private void validateSleepStatus(Member member){
         if(member.isSleepStatus())
             throw new GeneralException(SleepErrorCode.SLEEP_ALREADY_IN_PROGRESS);
@@ -240,11 +312,21 @@ public class SleepServiceImpl implements SleepService {
             throw new GeneralException(SleepErrorCode.SLEEP_NOT_IN_PROGRESS);
     }
 
+    private void validateDifferentSleepRecord(Long recordId, Long otherRecordId){
+        if(otherRecordId == null && recordId == null){
+            throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INVALID);
+        }
+    }
+
+    private void validateSleepRecord(Long recordId){
+        if(!sleepRecordRepository.existsById(recordId))
+            throw new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND);
+    }
 
     // ------------------------------ 계산 로직 ------------------------------
 
     // 허용 범위 내 시간 계산
-    private long calculateSleepTime(LocalDateTime now, LocalTime goalTime) {
+    private long calculateNearestGoalTimeMinutes(LocalDateTime now, LocalTime goalTime) {
 
         LocalDateTime today = LocalDateTime.of(now.toLocalDate(), goalTime);
         LocalDateTime yesterday = today.minusDays(1);
@@ -278,6 +360,20 @@ public class SleepServiceImpl implements SleepService {
         // 0.8배
         return (int) Math.round(baseExp * 0.8);
     }
+
+    private long durationMinutes(LocalTime start, LocalTime end) {
+        LocalDate today = LocalDate.now();
+
+        LocalDateTime startDT = LocalDateTime.of(today, start);
+        LocalDateTime endDT   = LocalDateTime.of(today, end);
+
+        if (end.isBefore(start)) {
+            endDT = endDT.plusDays(1); // 자정 넘김 처리
+        }
+
+        return Duration.between(startDT, endDT).toMinutes();
+    }
+
 
 
 }

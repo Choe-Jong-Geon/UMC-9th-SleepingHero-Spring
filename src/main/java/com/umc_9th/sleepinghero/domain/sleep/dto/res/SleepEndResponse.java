@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 public record SleepEndResponse(
 
-        Long sleepRecordId,
+        Long recordId,
         LocalDateTime sleptTime,
         LocalDateTime wokeTime,
         long durationMinutes,

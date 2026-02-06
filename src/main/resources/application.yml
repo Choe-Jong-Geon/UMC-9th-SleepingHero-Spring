@@ -3,6 +3,9 @@ jwt:
   access-exp-min: 30
   refresh-exp-days: 14
 
+openai:
+  api-key: ${OPENAI_API_KEY}
+
 spring:
   application:
     name: sleepinghero
