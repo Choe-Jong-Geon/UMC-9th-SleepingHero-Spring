@@ -1,33 +1,31 @@
 package com.umc_9th.sleepinghero.domain.help.controller;
 
+import com.umc_9th.sleepinghero.domain.help.dto.req.HelpRequestDTO;
 import com.umc_9th.sleepinghero.domain.help.dto.res.HelpResponseDTO;
 import com.umc_9th.sleepinghero.domain.help.service.HelpService;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/help")
 public class HelpController {
 
-
     private final HelpService helpService;
 
-    @GetMapping("/inquiries")
-    @Operation(summary = "문의하기 링크 조회 API", description = "문의하기 클릭 시 이동할 외부 링크(구글 폼 등)를 반환합니다.")
-    public ApiResponse<HelpResponseDTO.InquiryUrlDTO> getInquiryUrl(
-
-            @AuthenticationPrincipal Long memberId
+    @PostMapping("/inquiry")
+    @Operation(summary = "문의하기 등록 API", description = "버그 신고 및 불편 사항을 직접 입력받아 저장합니다.")
+    public ApiResponse<String> createInquiry(
+            @AuthenticationPrincipal Long memberId,
+            @RequestBody @Valid HelpRequestDTO.CreateHelpDTO request
     ) {
+        helpService.createHelpInquiry(memberId, request);
 
-        HelpResponseDTO.InquiryUrlDTO result = helpService.getInquiryUrl();
-
-        return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, "문의가 성공적으로 접수되었습니다.");
     }
 }
