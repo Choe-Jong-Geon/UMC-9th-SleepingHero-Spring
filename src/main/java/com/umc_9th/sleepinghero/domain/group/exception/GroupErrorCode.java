@@ -17,7 +17,8 @@ public enum GroupErrorCode implements BaseErrorCode {
     GROUP_FULL(HttpStatus.BAD_REQUEST, "COMMON400_3", "그룹 인원이 가득 찼습니다."),
     GROUP_NOT_DELETED(HttpStatus.INTERNAL_SERVER_ERROR,"COMMON500_1","그룹을 삭제할 수 없습니다, 그룹장이고 모든 회원이 " +
             "탈퇴 되어야 합니다."),
-    MASTER_NOT_EXITED(HttpStatus.INTERNAL_SERVER_ERROR,"COMMON500_1","그룹장은 탈퇴할 수 없습니다. 마스터를 위임하세요.");
+    MASTER_NOT_EXITED(HttpStatus.INTERNAL_SERVER_ERROR,"COMMON500_1","그룹장은 탈퇴할 수 없습니다. 마스터를 위임하세요."),
+    GROUP_INSIDE_RANKING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON500_1", "그룹 내 랭킹을 불러올 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
