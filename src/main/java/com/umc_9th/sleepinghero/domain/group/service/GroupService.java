@@ -2,14 +2,19 @@ package com.umc_9th.sleepinghero.domain.group.service;
 
 import com.umc_9th.sleepinghero.domain.group.converter.GroupConverter;
 import com.umc_9th.sleepinghero.domain.group.dto.req.*;
+import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInsideRankingResponse;
+import com.umc_9th.sleepinghero.domain.group.dto.res.MemberRankingInfo;
 import com.umc_9th.sleepinghero.domain.group.entity.Group;
 import com.umc_9th.sleepinghero.domain.group.entity.GroupMember;
 import com.umc_9th.sleepinghero.domain.group.exception.GroupErrorCode;
 import com.umc_9th.sleepinghero.domain.group.repository.GroupMemberRepository;
 import com.umc_9th.sleepinghero.domain.group.repository.GroupRepository;
+import com.umc_9th.sleepinghero.domain.hero.entity.Hero;
+import com.umc_9th.sleepinghero.domain.hero.repository.HeroRepository;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
 
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralErrorCode;
@@ -20,9 +25,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -38,6 +45,7 @@ public class GroupService {
     private final GroupMemberRepository groupMemberRepository;
     private final SleepRecordRepository sleepRecordRepository;
     private final MemberRepository memberRepository;
+    private final HeroRepository heroRepository;
 
     public String createGroup(Long memberId, GroupMakeRequestDto request) {
         validateGroupRequest(request);
@@ -112,6 +120,58 @@ public class GroupService {
 
         return "그룹이 삭제되었습니다.";
     }
+
+    @Transactional(readOnly = true)
+    public GroupInsideRankingResponse getGroupInsideRanking(String groupName) {
+        try {
+            Group group = groupRepository.findByName(groupName)
+                    .orElseThrow(() -> new GeneralException(GroupErrorCode.GROUP_NOT_FOUND));
+
+            List<GroupMember> groupMembers = groupMemberRepository.findAllByHeroGroupsAndStatus(group, Status.APPROVE);
+
+            List<MemberRankingInfo> rankings = groupMembers.stream()
+                    .map(gm -> {
+                        Member member = gm.getMember();
+                        long totalSeconds = calculateTotalSleepSeconds(member);
+                        long totalHours = totalSeconds / 3600;
+
+                        Hero hero = heroRepository.findByMember(member).orElse(null);
+                        int level  = hero.getCurrentLevel();
+
+                        int consecutiveDays = calculateConsecutiveDays(member);
+
+                        return MemberRankingInfo.builder()
+                                .memberName(member.getNickName())
+                                .groupRole(gm.getGroupRole().toString())
+                                .totalSleepTime(totalHours)
+                                .consecutiveSleepDays(consecutiveDays)
+                                .level(level)
+                                .build();
+                    })
+                    .sorted(Comparator.comparing(MemberRankingInfo::getTotalSleepTime).reversed())
+                    .collect(Collectors.toList());
+
+            long groupTotalTime = rankings.stream().mapToLong(MemberRankingInfo::getTotalSleepTime).sum();
+            double avgConsecutive = rankings.stream().mapToInt(MemberRankingInfo::getConsecutiveSleepDays).average().orElse(0.0);
+
+            for (int i = 0; i < rankings.size(); i++) {
+                rankings.set(i, updateRank(rankings.get(i), i + 1));
+            }
+
+            return GroupInsideRankingResponse.builder()
+                    .groupName(group.getName())
+                    .description(group.getDescription())
+                    .totalMembers(group.getCurrentPeople())
+                    .totalGroupSleepTime(groupTotalTime)
+                    .averageConsecutiveDays(Math.round(avgConsecutive * 10) / 10.0)
+                    .memberRankings(rankings)
+                    .build();
+
+        } catch (Exception e) {
+            throw new GeneralException(GroupErrorCode.GROUP_INSIDE_RANKING_ERROR);
+        }
+    }
+
 
     //------------------------------------------private logic ------------------------------------
 
@@ -234,6 +294,57 @@ public class GroupService {
                 .mapToLong(sr -> Duration.between(sr.getSleptTime(), sr.getWokeTime()).toMinutes())
                 .average()
                 .orElse(0.0);
+    }
+
+    private MemberRankingInfo updateRank(MemberRankingInfo info, int rank) {
+        return MemberRankingInfo.builder()
+                .rank(rank)
+                .memberName(info.getMemberName())
+                .groupRole(info.getGroupRole())
+                .consecutiveSleepDays(info.getConsecutiveSleepDays())
+                .totalSleepTime(info.getTotalSleepTime())
+                .level(info.getLevel())
+                .build();
+    }
+
+    private long calculateTotalSleepSeconds(Member member) {
+        return sleepRecordRepository.findAllByMemberAndIsSuccess(member, true).stream()
+                .filter(sr -> sr.getSleptTime() != null && sr.getWokeTime() != null)
+                .mapToLong(sr -> Duration.between(sr.getSleptTime(), sr.getWokeTime()).getSeconds())
+                .sum();
+    }
+
+    private int calculateConsecutiveDays(Member member) {
+        List<SleepRecord> successRecords = sleepRecordRepository.findAllByMemberAndIsSuccess(member, true);
+
+        if (successRecords.isEmpty()) return 0;
+
+        List<LocalDate> sleepDates = successRecords.stream()
+                .map(record -> record.getSleptTime().toLocalDate())
+                .distinct() // 중복 날짜 제거
+                .sorted(Comparator.reverseOrder()) // 최신순 정렬
+                .collect(Collectors.toList());
+
+        if (sleepDates.isEmpty()) return 0;
+
+        int consecutiveDays = 0;
+        LocalDate today = LocalDate.now();
+        LocalDate targetDate = sleepDates.get(0); // 가장 최근 날짜
+
+        if (!targetDate.equals(today) && !targetDate.equals(today.minusDays(1))) {
+            return 0;
+        }
+
+        for (LocalDate date : sleepDates) {
+            if (date.equals(targetDate)) {
+                consecutiveDays++;
+                targetDate = targetDate.minusDays(1);
+            } else {
+                break;
+            }
+        }
+
+        return consecutiveDays;
     }
 
 }

@@ -1,6 +1,7 @@
 package com.umc_9th.sleepinghero.domain.group.controller;
 
 import com.umc_9th.sleepinghero.domain.group.dto.req.*;
+import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInsideRankingResponse;
 import com.umc_9th.sleepinghero.domain.group.service.GroupService;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
@@ -66,6 +67,14 @@ public class GroupController {
             @RequestBody GroupDeleteRequest request) {
 
         String result = groupService.deleteGroup(memberId, request);
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
+    }
+
+    @GetMapping("/ranking/inside")
+    public ApiResponse<GroupInsideRankingResponse> getGroupInsideRanking(
+            @RequestParam String groupName) {
+
+        GroupInsideRankingResponse result = groupService.getGroupInsideRanking(groupName);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
