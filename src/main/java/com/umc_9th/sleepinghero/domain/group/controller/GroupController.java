@@ -2,6 +2,7 @@ package com.umc_9th.sleepinghero.domain.group.controller;
 
 import com.umc_9th.sleepinghero.domain.group.dto.req.*;
 import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInsideRankingResponse;
+import com.umc_9th.sleepinghero.domain.group.dto.res.GroupRankResponse;
 import com.umc_9th.sleepinghero.domain.group.service.GroupService;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;

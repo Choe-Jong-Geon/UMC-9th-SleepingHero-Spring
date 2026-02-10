@@ -1,7 +1,7 @@
 package com.umc_9th.sleepinghero.domain.group.converter;
 
 import com.umc_9th.sleepinghero.domain.group.dto.req.GroupMakeRequestDto;
-import com.umc_9th.sleepinghero.domain.group.dto.req.GroupRankResponse;
+import com.umc_9th.sleepinghero.domain.group.dto.res.GroupRankResponse;
 import com.umc_9th.sleepinghero.domain.group.entity.Group;
 import com.umc_9th.sleepinghero.domain.group.entity.GroupMember;
 import com.umc_9th.sleepinghero.domain.group.enums.GroupRole;
@@ -14,6 +14,7 @@ public class GroupConverter {
         return Group.builder()
                 .name(request.getGroupName())
                 .description(request.getDescription())
+                .groupImage(request.getGroupImageId())
                 .master(masterNickName)
                 .maxPeople(request.getMaxPeople() != null ? request.getMaxPeople() : 10)
                 .currentPeople(1)

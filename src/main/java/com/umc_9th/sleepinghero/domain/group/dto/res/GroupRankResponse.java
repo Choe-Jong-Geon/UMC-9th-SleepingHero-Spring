@@ -1,4 +1,4 @@
-package com.umc_9th.sleepinghero.domain.group.dto.req;
+package com.umc_9th.sleepinghero.domain.group.dto.res;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,5 +16,6 @@ public class GroupRankResponse {
     private int maxPeople;
     private int currentPeople;
     private int rank;
+    private int groupImageId;
 
 }

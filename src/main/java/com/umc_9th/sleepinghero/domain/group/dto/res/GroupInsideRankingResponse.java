@@ -16,4 +16,6 @@ public class GroupInsideRankingResponse {
     private long totalGroupSleepTime;
     private double averageConsecutiveDays;
     private List<MemberRankingInfo> memberRankings;
+    private int groupImageId;
+    private String groupMasterNickname;
 }
