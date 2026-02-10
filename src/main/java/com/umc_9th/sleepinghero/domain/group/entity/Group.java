@@ -24,12 +24,12 @@ public class Group extends BaseEntity {
     @Column(nullable = false)
     private String master;
 
-    @Column(nullable = false, name = "max_people ")
+    @Column(nullable = false, name = "max_people")
     @Builder.Default
     private int maxPeople = 10;
 
 
-    @Column(nullable = false, name = "current_people ")
+    @Column(nullable = false, name = "current_people")
     @Builder.Default
     private int currentPeople = 0;
 

@@ -1,12 +1,25 @@
 package com.umc_9th.sleepinghero.domain.member.service;
 
+import com.umc_9th.sleepinghero.domain.auth.service.RefreshTokenService;
+import com.umc_9th.sleepinghero.domain.group.entity.Group;
+import com.umc_9th.sleepinghero.domain.group.entity.GroupMember;
+import com.umc_9th.sleepinghero.domain.group.repository.GroupMemberRepository;
+import com.umc_9th.sleepinghero.domain.group.repository.GroupRepository;
+import com.umc_9th.sleepinghero.domain.help.repository.HelpRepository;
+import com.umc_9th.sleepinghero.domain.hero.repository.HeroRepository;
 import com.umc_9th.sleepinghero.domain.member.dto.req.MemberRequestDTO;
 import com.umc_9th.sleepinghero.domain.member.dto.res.FriendRankResponse;
 import com.umc_9th.sleepinghero.domain.member.dto.res.MemberResponse;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
+import com.umc_9th.sleepinghero.domain.skin.repository.SkinMemberRepository;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepReview;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepFeedBackRepository;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepReviewRepository;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import com.umc_9th.sleepinghero.domain.member.converter.MemberConverter;
 import com.umc_9th.sleepinghero.domain.member.dto.res.FriendResponse;
@@ -29,9 +42,20 @@ import java.util.stream.IntStream;
 @Transactional
 public class MemberService {
 
+    private final RefreshTokenService refreshTokenService;
+
     private final FriendRepository friendRepository;
     private final MemberRepository memberRepository;
     private final SleepRecordRepository sleepRecordRepository;
+    private final SleepFeedBackRepository sleepFeedBackRepository;
+    private final SleepReviewRepository sleepReviewRepository;
+    private final SleepGoalRepository sleepGoalRepository;
+    private final GroupMemberRepository groupMemberRepository;
+    private final GroupRepository groupRepository;
+
+    private final SkinMemberRepository skinMemberRepository;
+    private final HeroRepository heroRepository;
+    private final HelpRepository helpRepository;
 
     public String sendFriendRequest(Long memberId, String targetNickName) {
         Member me = findMemberByIdOrThrow(memberId);
@@ -129,6 +153,45 @@ public class MemberService {
         } catch (Exception e) {
             throw new GeneralException(MemberErrorCode.FRIEND_RANKING_ERROR);
         }
+    }
+
+    @Transactional
+    public void deleteMeHard(Long memberId) {
+
+        refreshTokenService.delete(memberId);
+
+        Member member = findMemberByIdOrThrow(memberId);
+        String nickname = member.getNickName();
+        List<Group> masterGroups = groupRepository.findAllByMaster(nickname);
+
+        for (Group g : masterGroups) {
+            groupMemberRepository.deleteAllByHeroGroups(g);
+            groupRepository.delete(g);
+        }
+
+        List<GroupMember> approvedGroups =
+                groupMemberRepository.findAllByMemberAndStatus(member, Status.APPROVE);
+
+        for (GroupMember gm : approvedGroups) {
+            Group g = gm.getHeroGroups();
+            if (g.getMaster() != null && g.getMaster().equals(nickname)) continue;
+            g.decrementCurrentPeople();
+        }
+
+        groupMemberRepository.deleteAllByMember(member);
+
+        List<SleepRecord> records = sleepRecordRepository.findAllByMember(member);
+        List<SleepReview> reviews = sleepReviewRepository.findAllBySleepRecordIn(records);
+        sleepFeedBackRepository.deleteAllBySleepReviewIn(reviews);
+        sleepReviewRepository.deleteAllBySleepRecordIn(records);
+        sleepRecordRepository.deleteAllByMemberId(memberId);
+        sleepGoalRepository.deleteByMemberId(memberId);
+        friendRepository.deleteAllByMemberIdOrFriendId(memberId);
+        skinMemberRepository.deleteAllByMemberId(memberId);
+        heroRepository.deleteByMemberId(memberId);
+        helpRepository.deleteAllByMemberId(memberId);
+
+        memberRepository.delete(member);
     }
 
 

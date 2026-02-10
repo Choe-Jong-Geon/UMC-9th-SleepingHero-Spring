@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface SleepGoalRepository extends JpaRepository<SleepGoal, Long> {
     Optional<SleepGoal> findByMemberId(Long memberId);
     boolean existsByMemberId(Long memberId);
+
+    void deleteByMemberId(Long memberId);
 }
