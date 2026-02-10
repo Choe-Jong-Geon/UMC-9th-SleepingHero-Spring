@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,4 +19,7 @@ public interface SleepRecordRepository extends JpaRepository<SleepRecord, Long> 
     Optional<SleepRecord> findTopByMemberIdAndWokeTimeIsNullOrderBySleptTimeDesc(Long memberId);
     Optional<SleepRecord> findTopByMemberIdAndWokeTimeIsNotNullOrderByWokeTimeDesc(Long memberId);
     List<SleepRecord> findAllByMemberAndIsSuccess(Member member, boolean b);
+    List<SleepRecord> findAllByMember(Member member);
+
+    void deleteAllByMemberId(Long memberId);
 }

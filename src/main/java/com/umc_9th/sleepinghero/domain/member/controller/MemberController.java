@@ -96,5 +96,10 @@ public class MemberController {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
+    @DeleteMapping("/users/me")
+    public ApiResponse<Void> deleteMe(@AuthenticationPrincipal Long memberId) {
+        memberService.deleteMeHard(memberId);
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, null);
+    }
 }
 

@@ -1,12 +1,23 @@
 package com.umc_9th.sleepinghero.domain.member.service;
 
+import com.umc_9th.sleepinghero.domain.auth.service.RefreshTokenService;
+import com.umc_9th.sleepinghero.domain.group.entity.GroupMember;
+import com.umc_9th.sleepinghero.domain.group.repository.GroupMemberRepository;
+import com.umc_9th.sleepinghero.domain.help.repository.HelpRepository;
+import com.umc_9th.sleepinghero.domain.hero.repository.HeroRepository;
 import com.umc_9th.sleepinghero.domain.member.dto.req.MemberRequestDTO;
 import com.umc_9th.sleepinghero.domain.member.dto.res.FriendRankResponse;
 import com.umc_9th.sleepinghero.domain.member.dto.res.MemberResponse;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
+import com.umc_9th.sleepinghero.domain.skin.repository.SkinMemberRepository;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
+import com.umc_9th.sleepinghero.domain.sleep.entity.SleepReview;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepFeedBackRepository;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
+import com.umc_9th.sleepinghero.domain.sleep.repository.SleepReviewRepository;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import com.umc_9th.sleepinghero.domain.member.converter.MemberConverter;
 import com.umc_9th.sleepinghero.domain.member.dto.res.FriendResponse;
@@ -29,9 +40,19 @@ import java.util.stream.IntStream;
 @Transactional
 public class MemberService {
 
+    private final RefreshTokenService refreshTokenService;
+
     private final FriendRepository friendRepository;
     private final MemberRepository memberRepository;
     private final SleepRecordRepository sleepRecordRepository;
+    private final SleepFeedBackRepository sleepFeedBackRepository;
+    private final SleepReviewRepository sleepReviewRepository;
+    private final SleepGoalRepository sleepGoalRepository;
+    private final GroupMemberRepository groupMemberRepository;
+
+    private final SkinMemberRepository skinMemberRepository;
+    private final HeroRepository heroRepository;
+    private final HelpRepository helpRepository;
 
     public String sendFriendRequest(Long memberId, String targetNickName) {
         Member me = findMemberByIdOrThrow(memberId);
@@ -129,6 +150,62 @@ public class MemberService {
         } catch (Exception e) {
             throw new GeneralException(MemberErrorCode.FRIEND_RANKING_ERROR);
         }
+    }
+
+    @Transactional
+    public void deleteMeHard(Long memberId) {
+
+        // 0) refresh 토큰 삭제(로그아웃 효과)
+        refreshTokenService.delete(memberId);
+
+        Member member = findMemberByIdOrThrow(memberId);
+
+        // 2) 그룹 탈퇴 처리
+        // 2-1) APPROVE인 그룹만 currentPeople 감소
+        List<GroupMember> approvedGroups =
+                groupMemberRepository.findAllByMemberAndStatus(member, Status.APPROVE);
+
+        for (GroupMember gm : approvedGroups) {
+            gm.getHeroGroups().decrementCurrentPeople();
+        }
+
+        groupMemberRepository.deleteAllByMember(member);
+
+        // 3-1) 내 SleepRecord들 조회
+        List<SleepRecord> records = sleepRecordRepository.findAllByMember(member);
+
+        // 3-2) record별 review 찾기(레포 메서드 추가 추천) — 아래 섹션 참고
+        List<SleepReview> reviews = sleepReviewRepository.findAllBySleepRecordIn(records);
+
+        // 3-3) feedback 먼저 삭제 (SleepFeedBack -> SleepReview FK)
+        sleepFeedBackRepository.deleteAllBySleepReviewIn(reviews);
+
+        // 3-4) review 삭제 (SleepReview -> SleepRecord FK)
+        sleepReviewRepository.deleteAllBySleepRecordIn(records);
+
+        // 3-5) record 삭제 (SleepRecord -> Member FK)
+        sleepRecordRepository.deleteAllByMemberId(memberId);
+
+        // 3-6) goal 삭제 (SleepGoal -> Member OneToOne)
+        sleepGoalRepository.deleteByMemberId(memberId);
+
+        // =========================
+        // 4) 기타 연관 삭제
+        // =========================
+
+        // 친구 관계(양방향) 삭제
+        friendRepository.deleteAllByMemberIdOrFriendId(memberId);
+
+        // 스킨 보유 관계 삭제
+        skinMemberRepository.deleteAllByMemberId(memberId);
+
+        // 히어로 삭제(OneToOne)
+        heroRepository.deleteByMemberId(memberId);
+
+        // 문의(Help) 삭제
+        helpRepository.deleteAllByMemberId(memberId);
+
+        memberRepository.delete(member);
     }
 
 

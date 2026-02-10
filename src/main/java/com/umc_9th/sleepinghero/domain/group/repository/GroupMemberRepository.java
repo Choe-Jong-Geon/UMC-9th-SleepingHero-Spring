@@ -18,4 +18,8 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     Optional<GroupMember> findByMemberAndHeroGroupsAndStatus(Member me, Group group, Status status);
 
     List<GroupMember> findAllByHeroGroupsAndStatus(Group group, Status status);
+
+    List<GroupMember> findAllByMemberAndStatus(Member member, Status status);
+
+    void deleteAllByMember(Member member);
 }
