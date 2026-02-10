@@ -3,6 +3,7 @@ package com.umc_9th.sleepinghero.domain.group.service;
 import com.umc_9th.sleepinghero.domain.group.converter.GroupConverter;
 import com.umc_9th.sleepinghero.domain.group.dto.req.*;
 import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInsideRankingResponse;
+import com.umc_9th.sleepinghero.domain.group.dto.res.GroupRankResponse;
 import com.umc_9th.sleepinghero.domain.group.dto.res.MemberRankingInfo;
 import com.umc_9th.sleepinghero.domain.group.entity.Group;
 import com.umc_9th.sleepinghero.domain.group.entity.GroupMember;
@@ -198,8 +199,10 @@ public class GroupService {
                 .description(group.getDescription())
                 .totalMembers(group.getCurrentPeople())
                 .totalGroupSleepTime(totalTime)
+                .groupImageId(group.getGroupImage())
                 .averageConsecutiveDays(Math.round(avgDays * 10) / 10.0)
                 .memberRankings(rankings)
+                .groupMasterNickname(group.getMaster())
                 .build();
     }
 

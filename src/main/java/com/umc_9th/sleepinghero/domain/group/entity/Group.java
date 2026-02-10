@@ -28,6 +28,8 @@ public class Group extends BaseEntity {
     @Builder.Default
     private int maxPeople = 10;
 
+    @Column(nullable = true, name = "group_image")
+    private int groupImage;
 
     @Column(nullable = false, name = "current_people")
     @Builder.Default

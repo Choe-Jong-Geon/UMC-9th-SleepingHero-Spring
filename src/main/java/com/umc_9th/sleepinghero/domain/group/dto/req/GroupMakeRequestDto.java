@@ -11,6 +11,7 @@ public class GroupMakeRequestDto {
 
     private String groupName;
     private String description;
-
     private Integer maxPeople;
+    private int groupImageId;
+
 }
