@@ -3,6 +3,7 @@ package com.umc_9th.sleepinghero.domain.auth.controller;
 import com.umc_9th.sleepinghero.domain.auth.dto.req.OauthLoginRequest;
 import com.umc_9th.sleepinghero.domain.auth.dto.res.LoginResponse;
 import com.umc_9th.sleepinghero.domain.auth.dto.res.LoginResult;
+import com.umc_9th.sleepinghero.domain.auth.dto.res.TokenReissueResponse;
 import com.umc_9th.sleepinghero.domain.auth.service.OauthLoginService;
 import com.umc_9th.sleepinghero.domain.member.enums.OauthProvider;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
@@ -44,5 +45,15 @@ public class AuthController {
                                 result.nickName(),
                                 result.accessToken())
                 ));
+    }
+    @PostMapping("/reissue")
+    public ResponseEntity<ApiResponse<TokenReissueResponse>> reissue(
+            @RequestHeader("X-REFRESH-TOKEN") String refreshToken
+    ) {
+        String newAccessToken = oauthLoginService.reissueAccessToken(refreshToken);
+
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(GeneralSuccessCode.OK, new TokenReissueResponse(newAccessToken))
+        );
     }
 }

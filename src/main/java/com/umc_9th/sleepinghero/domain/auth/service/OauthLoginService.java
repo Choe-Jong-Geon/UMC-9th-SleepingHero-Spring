@@ -66,4 +66,27 @@ public class OauthLoginService {
 
         return new LoginResult(member.getId(), member.getNickName(), accessJwt, refreshJwt);
     }
+
+    @Transactional(readOnly = true)
+    public String reissueAccessToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new GeneralException(AuthErrorCode.OAUTH_ACCESS_TOKEN_REQUIRED);
+        }
+
+        if (!jwtTokenProvider.validate(refreshToken)) {
+            throw new GeneralException(AuthErrorCode.JWT_INVALID);
+        }
+
+        Long memberId = jwtTokenProvider.getMemberId(refreshToken);
+
+        if (!refreshTokenService.matches(memberId, refreshToken)) {
+            throw new GeneralException(AuthErrorCode.JWT_INVALID);
+        }
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GeneralException(AuthErrorCode.MEMBER_NOT_FOUND));
+
+        return jwtTokenProvider.createAccessToken(member.getId(), member.getRole());
+    }
+
 }
