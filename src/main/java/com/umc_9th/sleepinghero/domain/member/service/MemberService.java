@@ -1,8 +1,10 @@
 package com.umc_9th.sleepinghero.domain.member.service;
 
 import com.umc_9th.sleepinghero.domain.auth.service.RefreshTokenService;
+import com.umc_9th.sleepinghero.domain.group.entity.Group;
 import com.umc_9th.sleepinghero.domain.group.entity.GroupMember;
 import com.umc_9th.sleepinghero.domain.group.repository.GroupMemberRepository;
+import com.umc_9th.sleepinghero.domain.group.repository.GroupRepository;
 import com.umc_9th.sleepinghero.domain.help.repository.HelpRepository;
 import com.umc_9th.sleepinghero.domain.hero.repository.HeroRepository;
 import com.umc_9th.sleepinghero.domain.member.dto.req.MemberRequestDTO;
@@ -49,6 +51,7 @@ public class MemberService {
     private final SleepReviewRepository sleepReviewRepository;
     private final SleepGoalRepository sleepGoalRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final GroupRepository groupRepository;
 
     private final SkinMemberRepository skinMemberRepository;
     private final HeroRepository heroRepository;
@@ -155,54 +158,37 @@ public class MemberService {
     @Transactional
     public void deleteMeHard(Long memberId) {
 
-        // 0) refresh 토큰 삭제(로그아웃 효과)
         refreshTokenService.delete(memberId);
 
         Member member = findMemberByIdOrThrow(memberId);
+        String nickname = member.getNickName();
+        List<Group> masterGroups = groupRepository.findAllByMaster(nickname);
 
-        // 2) 그룹 탈퇴 처리
-        // 2-1) APPROVE인 그룹만 currentPeople 감소
+        for (Group g : masterGroups) {
+            groupMemberRepository.deleteAllByHeroGroups(g);
+            groupRepository.delete(g);
+        }
+
         List<GroupMember> approvedGroups =
                 groupMemberRepository.findAllByMemberAndStatus(member, Status.APPROVE);
 
         for (GroupMember gm : approvedGroups) {
-            gm.getHeroGroups().decrementCurrentPeople();
+            Group g = gm.getHeroGroups();
+            if (g.getMaster() != null && g.getMaster().equals(nickname)) continue;
+            g.decrementCurrentPeople();
         }
 
         groupMemberRepository.deleteAllByMember(member);
 
-        // 3-1) 내 SleepRecord들 조회
         List<SleepRecord> records = sleepRecordRepository.findAllByMember(member);
-
-        // 3-2) record별 review 찾기(레포 메서드 추가 추천) — 아래 섹션 참고
         List<SleepReview> reviews = sleepReviewRepository.findAllBySleepRecordIn(records);
-
-        // 3-3) feedback 먼저 삭제 (SleepFeedBack -> SleepReview FK)
         sleepFeedBackRepository.deleteAllBySleepReviewIn(reviews);
-
-        // 3-4) review 삭제 (SleepReview -> SleepRecord FK)
         sleepReviewRepository.deleteAllBySleepRecordIn(records);
-
-        // 3-5) record 삭제 (SleepRecord -> Member FK)
         sleepRecordRepository.deleteAllByMemberId(memberId);
-
-        // 3-6) goal 삭제 (SleepGoal -> Member OneToOne)
         sleepGoalRepository.deleteByMemberId(memberId);
-
-        // =========================
-        // 4) 기타 연관 삭제
-        // =========================
-
-        // 친구 관계(양방향) 삭제
         friendRepository.deleteAllByMemberIdOrFriendId(memberId);
-
-        // 스킨 보유 관계 삭제
         skinMemberRepository.deleteAllByMemberId(memberId);
-
-        // 히어로 삭제(OneToOne)
         heroRepository.deleteByMemberId(memberId);
-
-        // 문의(Help) 삭제
         helpRepository.deleteAllByMemberId(memberId);
 
         memberRepository.delete(member);
