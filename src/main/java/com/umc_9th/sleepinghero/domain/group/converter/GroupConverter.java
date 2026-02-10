@@ -27,6 +27,7 @@ public class GroupConverter {
                 .name(group.getName())
                 .maxPeople(group.getMaxPeople())
                 .currentPeople(group.getCurrentPeople())
+                .groupImageId(group.getGroupImage())
                 .rank(rank)
                 .build();
     }
