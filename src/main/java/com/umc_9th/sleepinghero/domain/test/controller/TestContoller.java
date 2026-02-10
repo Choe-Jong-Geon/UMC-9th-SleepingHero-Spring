@@ -34,16 +34,16 @@ public class TestContoller {
     @PostMapping("/test/token")
     @Operation(summary = "테스트 유저 생성", description = "이 api 호출 시 토큰 자동 생성")
     public String issue(@RequestParam Long memberId) {
-        memberRepository.findById(memberId)
+        Member member = memberRepository.findById(memberId)
                 .orElseGet(() -> memberRepository.save(
                         Member.builder()
                                 .provider(OauthProvider.NAVER)
                                 .providerId("testUserProviderId-" + memberId)
-                                .email("test-"+memberId +"@test.com")
-                                .nickName("테스트유저")
+                                .email("test-" + memberId + "@test.com")
+                                .nickName("테스트유저"+memberId)
                                 .build()
                 ));
-        return jwtTokenProvider.createAccessToken(memberId, Role.ROLE_USER);
+        return jwtTokenProvider.createAccessToken(member.getId(), Role.ROLE_USER);
     }
 
     @PostMapping("/test/record")
