@@ -199,6 +199,7 @@ public class GroupService {
                 .description(group.getDescription())
                 .totalMembers(group.getCurrentPeople())
                 .totalGroupSleepTime(totalTime)
+                .groupImageId(group.getGroupImage())
                 .averageConsecutiveDays(Math.round(avgDays * 10) / 10.0)
                 .memberRankings(rankings)
                 .groupMasterNickname(group.getMaster())
