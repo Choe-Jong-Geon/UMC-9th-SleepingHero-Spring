@@ -102,7 +102,7 @@ public class MemberService {
         Member me = findMemberByIdOrThrow(memberId);
 
         return friendRepository.findAllByMemberAndStatus(me, status).stream()
-                .map(relation -> MemberConverter.toFriendResponse(relation.getFriend()))
+                .map(relation -> MemberConverter.toFriendResponse(relation.getMember()))
                 .collect(Collectors.toList());
     }
 
