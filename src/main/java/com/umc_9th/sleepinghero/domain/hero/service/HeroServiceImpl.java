@@ -95,7 +95,8 @@ public class HeroServiceImpl implements HeroService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        if (!hero.getName().equals(request.getName()) && heroRepository.existsByName(request.getName())) {
+        if (!hero.getName(
+        ).equals(request.getName()) && heroRepository.existsByName(request.getName())) {
             throw new GeneralException(HeroErrorCode.DUPLICATE_HERO_NAME);
         }
 
