@@ -56,6 +56,7 @@ public class Member extends BaseEntity {
 
     public void startSleep() { this.sleepStatus = true; }
     public void endSleep() { this.sleepStatus = false; }
+    public void updateNickname(String nickname) { this.nickName = nickname; }
 
 }
 
