@@ -49,7 +49,20 @@ public class GroupService {
     public String createGroup(Long memberId, GroupMakeRequestDto request) {
         validateGroupRequest(request);
         Member member = findMemberByIdOrThrow(memberId);
-        groupRepository.save(GroupConverter.toGroup(request, member.getNickName()));
+
+        Group newGroup = GroupConverter.toGroup(request, member.getNickName());
+        newGroup.incrementCurrentPeople();
+        Group savedGroup = groupRepository.save(newGroup);
+
+        GroupMember groupMaster = GroupMember.builder()
+                .member(member)
+                .heroGroups(savedGroup)
+                .groupRole(GroupRole.LEADER)
+                .status(Status.APPROVE)
+                .build();
+
+        groupMemberRepository.save(groupMaster);
+
         return "그룹 생성이 완료되었습니다.";
     }
 
@@ -260,7 +273,7 @@ public class GroupService {
     private double calculateGroupSleepAverage(Long gid) {
         List<GroupMember> gms = groupMemberRepository.findAllByHeroGroupsIdAndStatus(gid, Status.APPROVE);
         return gms.stream().map(GroupMember::getMember)
-                .flatMap(m -> sleepRecordRepository.findAllByMemberAndSuccess(m, true).stream())
+                .flatMap(m -> sleepRecordRepository.findAllByMemberAndIsSuccess(m, true).stream())
                 .mapToLong(sr -> Duration.between(sr.getSleptTime(), sr.getWokeTime()).toMinutes())
                 .average().orElse(0.0);
     }

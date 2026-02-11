@@ -21,12 +21,12 @@ public class Group extends BaseEntity {
     @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false)
-    private String master;
-
     @Column(nullable = false, name = "max_people")
     @Builder.Default
     private int maxPeople = 10;
+
+    @Column(nullable = false, name = "group_master")
+    private String master;
 
     @Column(nullable = true, name = "group_image")
     private int groupImage;

@@ -21,5 +21,6 @@ public interface SleepRecordRepository extends JpaRepository<SleepRecord, Long> 
     List<SleepRecord> findAllByMemberAndIsSuccess(Member member, boolean b);
     List<SleepRecord> findAllByMember(Member member);
 
+
     void deleteAllByMemberId(Long memberId);
 }
