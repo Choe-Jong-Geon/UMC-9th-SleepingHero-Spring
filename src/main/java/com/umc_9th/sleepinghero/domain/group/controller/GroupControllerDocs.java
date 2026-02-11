@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
-@Tag(name = "Group 관련 API", description = "그룹 생성, 초대, 랭킹 및 멤버 관리 API")
+@Tag(name = "group-controller", description = "그룹 생성, 초대, 랭킹 및 멤버 관리 API")
 public interface GroupControllerDocs {
 
     @Operation(summary = "그룹 생성 API", description = "새로운 히어로 그룹을 생성합니다.")

@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
-@Tag(name = "Member 관련 API", description = "친구 관리, 튜토리얼, 랭킹 및 계정 관련 API")
+@Tag(name = "member-controller", description = "친구 관리, 튜토리얼, 랭킹 및 계정 관련 API")
 public interface MemberControllerDocs {
 
     @Operation(summary = "친구 요청 API", description = "닉네임을 통해 상대방에게 친구 요청을 보냅니다.")
