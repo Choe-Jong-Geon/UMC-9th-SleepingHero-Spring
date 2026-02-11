@@ -58,6 +58,12 @@ public class OauthLoginService {
                                 .profilePicture(profile.profileImage())
                                 .build()
                 ));
+        if (profile.nickname() != null
+                && (member.getNickName() == null
+                || member.getNickName().equals("유저"))) {
+
+            member.updateNickname(profile.nickname());
+        }
 
         String accessJwt = jwtTokenProvider.createAccessToken(member.getId(), member.getRole());
         String refreshJwt = jwtTokenProvider.createRefreshToken(member.getId());
