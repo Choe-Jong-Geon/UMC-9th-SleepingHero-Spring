@@ -79,6 +79,8 @@ public class HeroServiceImpl implements HeroService {
                 .currentStage(1)
                 .build();
 
+        member.updateNickname(finalName);
+
         Hero savedHero = heroRepository.save(newHero);
         return HeroResponseDTO.toDetailDTO(savedHero);
     }
@@ -90,11 +92,16 @@ public class HeroServiceImpl implements HeroService {
         Hero hero = heroRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new GeneralException(HeroErrorCode.HERO_NOT_FOUND));
 
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
+
         if (!hero.getName().equals(request.getName()) && heroRepository.existsByName(request.getName())) {
             throw new GeneralException(HeroErrorCode.DUPLICATE_HERO_NAME);
         }
 
         hero.updateName(request.getName());
+
+        member.updateNickname(request.getName());
 
         return HeroResponseDTO.toDetailDTO(hero);
     }
