@@ -101,8 +101,8 @@ public class MemberService {
     public List<FriendResponse> getFriendListByStatus(Long memberId, Status status) {
         Member me = findMemberByIdOrThrow(memberId);
 
-        return friendRepository.findAllByMemberAndStatus(me, status).stream()
-                .map(relation -> MemberConverter.toFriendResponse(relation.getMember()))
+        return friendRepository.findAllByFriendAndStatus(me, status).stream()
+                .map(relation -> MemberConverter.toFriendResponse(relation.getMember())) // 나에게 신청한 '상대방(Member)' 정보를 반환
                 .collect(Collectors.toList());
     }
 
