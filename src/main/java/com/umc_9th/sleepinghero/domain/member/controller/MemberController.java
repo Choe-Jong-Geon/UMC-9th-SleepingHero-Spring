@@ -20,7 +20,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class MemberController {
+public class MemberController implements MemberControllerDocs {
 
     private final MemberService memberService;
 
@@ -70,7 +70,6 @@ public class MemberController {
 
 
     @GetMapping("/users/me/tutorial")
-    @Operation(summary = "튜토리얼 조회 API", description = "유저의 튜토리얼 완료 여부를 조회합니다.")
     public ApiResponse<MemberResponse.CheckTutorialDTO> checkTutorial(@AuthenticationPrincipal Long memberId
     ) {
         MemberResponse.CheckTutorialDTO result = memberService.checkTutorial(memberId);
@@ -79,7 +78,6 @@ public class MemberController {
 
 
     @PatchMapping("/users/me/tutorial")
-    @Operation(summary = "튜토리얼 완료 처리 API", description = "유저의 튜토리얼 상태를 변경합니다.")
     public ApiResponse<MemberResponse.CompleteTutorialResultDTO> completeTutorial(
             @AuthenticationPrincipal Long memberId,
             @RequestBody MemberRequestDTO.CompleteTutorialDTO request
