@@ -18,8 +18,6 @@ public interface SleepService {
 
     SleepEndResponse endSleep(Long memberId);
 
-    SleepReviewResponse createReview(SleepReviewRequest request, Long memberId);
-
+//    SleepReviewResponse createReview(SleepReviewRequest request, Long memberId);
     long testRecord(Long memberId);
-
 }
