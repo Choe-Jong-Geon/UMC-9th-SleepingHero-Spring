@@ -10,7 +10,9 @@ import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
 import com.umc_9th.sleepinghero.domain.skin.entity.Skin;
+import com.umc_9th.sleepinghero.domain.skin.entity.SkinMember;
 import com.umc_9th.sleepinghero.domain.skin.exception.SkinErrorCode;
+import com.umc_9th.sleepinghero.domain.skin.repository.SkinMemberRepository;
 import com.umc_9th.sleepinghero.domain.skin.repository.SkinRepository;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepGoal;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -33,6 +36,7 @@ public class HeroServiceImpl implements HeroService {
     private final MemberRepository memberRepository;
     private final SleepGoalRepository sleepGoalRepository;
     private final SleepRecordRepository sleepRecordRepository;
+    private final SkinMemberRepository skinMemberRepository;
 
 
     @Override
@@ -65,8 +69,20 @@ public class HeroServiceImpl implements HeroService {
                 .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
 
 
-        Skin defaultSkin = skinRepository.findById(1L)
-                .orElseThrow(() -> new GeneralException(SkinErrorCode.SKIN_NOT_FOUND));
+        List<Long> initialSkinIds = List.of(1L, 2L, 3L);
+        List<Skin> initialSkins = skinRepository.findAllById(initialSkinIds);
+
+        if (initialSkins.size() < 3) {
+            throw new GeneralException(SkinErrorCode.SKIN_NOT_FOUND);
+        }
+
+        initialSkins.forEach(skin -> {
+            SkinMember skinMember = SkinMember.builder()
+                    .member(member)
+                    .skin(skin)
+                    .build();
+            skinMemberRepository.save(skinMember);
+        });
 
         String finalName = generateUniqueDefaultName();
 
@@ -74,7 +90,7 @@ public class HeroServiceImpl implements HeroService {
                 .name(finalName)
                 .member(member)
                 .currentLevel(1)
-                .currentSkin(defaultSkin)
+                .currentSkin(initialSkins.getFirst())
                 .currentExp(0)
                 .currentStage(1)
                 .build();
@@ -132,6 +148,28 @@ public class HeroServiceImpl implements HeroService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public void checkAndUnlockSkin(Member member, int currentLevel) {
+
+        List<Long> targetSkinIds = null;
+        if (currentLevel >= 70) targetSkinIds = List.of(10L, 11L, 12L);
+        else if (currentLevel >= 35) targetSkinIds = List.of(7L, 8L, 9L);
+        else if (currentLevel >= 10) targetSkinIds = List.of(4L, 5L, 6L);
+
+        if (targetSkinIds != null) {
+            for (Long skinId : targetSkinIds) {
+                if (!skinMemberRepository.existsByMemberIdAndSkinId(member.getId(), skinId)) {
+                    Skin skin = skinRepository.findById(skinId)
+                            .orElseThrow(() -> new GeneralException(SkinErrorCode.SKIN_NOT_FOUND));
+                    skinMemberRepository.save(SkinMember.builder().member(member).skin(skin).build());
+                }
+            }
+        }
+    }
+
+
+
 
     private String generateUniqueDefaultName() {
         String baseName = "김용사";
@@ -154,4 +192,5 @@ public class HeroServiceImpl implements HeroService {
                 .mapToLong(sr -> Duration.between(sr.getSleptTime(), sr.getWokeTime()).getSeconds())
                 .sum();
     }
+
 }

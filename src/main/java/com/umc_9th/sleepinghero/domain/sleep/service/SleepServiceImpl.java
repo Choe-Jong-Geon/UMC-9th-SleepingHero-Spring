@@ -5,6 +5,7 @@ import com.umc_9th.sleepinghero.domain.hero.dto.res.LevelChange;
 import com.umc_9th.sleepinghero.domain.hero.entity.Hero;
 import com.umc_9th.sleepinghero.domain.hero.exception.HeroErrorCode;
 import com.umc_9th.sleepinghero.domain.hero.repository.HeroRepository;
+import com.umc_9th.sleepinghero.domain.hero.service.HeroService;
 import com.umc_9th.sleepinghero.domain.hero.util.LevelPolicy;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
@@ -42,7 +43,7 @@ public class SleepServiceImpl implements SleepService {
     private final SleepReviewRepository sleepReviewRepository;
     private final MemberRepository memberRepository;
     private final HeroRepository heroRepository;
-
+    private final HeroService heroService;
     private final SleepFeedBackService sleepFeedBackService;
 
     private final SleepConverter sleepConverter;
@@ -275,6 +276,10 @@ public class SleepServiceImpl implements SleepService {
         hero.gainExp(gainedExp);
 
         int currentLevel = hero.getCurrentLevel();
+
+        if (currentLevel > prevLevel) {
+            heroService.checkAndUnlockSkin(hero.getMember(), currentLevel);
+        }
 
         return new LevelChange(
                 prevLevel,

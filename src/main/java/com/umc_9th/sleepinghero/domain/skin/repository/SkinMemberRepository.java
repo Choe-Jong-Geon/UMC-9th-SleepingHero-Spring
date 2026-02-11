@@ -13,5 +13,7 @@ public interface SkinMemberRepository extends JpaRepository<SkinMember, Long> {
     // 유저 ID와 스킨 ID로 보유 여부 확인
     Optional<SkinMember> findByMemberIdAndSkinId(Long memberId, Long skinId);
 
+    boolean existsByMemberIdAndSkinId(Long memberId, Long skinId);
+
     void deleteAllByMemberId(Long memberId);
 }
