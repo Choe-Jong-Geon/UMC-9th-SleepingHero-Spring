@@ -51,7 +51,7 @@ public class GroupService {
         Member member = findMemberByIdOrThrow(memberId);
 
         Group newGroup = GroupConverter.toGroup(request, member.getNickName());
-        newGroup.incrementCurrentPeople(); // 인원수 +1
+        newGroup.incrementCurrentPeople();
         Group savedGroup = groupRepository.save(newGroup);
 
         GroupMember groupMaster = GroupMember.builder()
