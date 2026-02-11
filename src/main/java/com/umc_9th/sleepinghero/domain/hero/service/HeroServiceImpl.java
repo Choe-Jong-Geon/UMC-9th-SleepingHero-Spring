@@ -79,6 +79,8 @@ public class HeroServiceImpl implements HeroService {
                 .currentStage(1)
                 .build();
 
+        member.updateNickname(finalName);
+
         Hero savedHero = heroRepository.save(newHero);
         return HeroResponseDTO.toDetailDTO(savedHero);
     }
