@@ -77,13 +77,12 @@ public class MemberService {
         Member me = findMemberByIdOrThrow(memberId);
         Member sender = findMemberByNickNameOrThrow(senderNickName);
 
-        // 나(me)에게 온 요청(sender -> me)을 찾음
         Friend request = friendRepository.findByMemberAndFriendAndStatus(sender, me, Status.PENDING)
                 .orElseThrow(() -> new GeneralException(MemberErrorCode.INVALID_FRIEND_REQUEST));
 
-        if ("accept".equalsIgnoreCase(action)) {
+        if (action.equals("APPROVE")) {
             request.updateStatus(Status.APPROVE);
-            // 양방향 데이터 생성 (나 -> 상대방)
+
             friendRepository.save(Friend.builder()
                     .member(me)
                     .friend(sender)
