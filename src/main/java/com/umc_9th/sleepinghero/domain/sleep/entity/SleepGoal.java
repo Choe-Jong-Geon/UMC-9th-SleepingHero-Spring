@@ -53,4 +53,25 @@ public class SleepGoal extends BaseEntity {
         currentStreak = 0;
         nonSleepStreak++;
     }
+
+    public boolean evaluateGoal(SleepRecord record, LocalDateTime now) {
+
+        LocalDateTime slept = record.getSleptTime();
+        LocalDateTime goalDateTime = LocalDateTime.of(slept.toLocalDate(), this.wakeTime);
+
+        if (this.wakeTime.isBefore(slept.toLocalTime())) {
+            goalDateTime = goalDateTime.plusDays(1);
+        }
+
+        LocalDateTime failTime = goalDateTime.minusMinutes(10);
+
+        if (failTime.isBefore(now)) {
+            this.successGoal();
+            return true;
+        } else {
+            this.failGoal();
+            return false;
+        }
+    }
+
 }

@@ -1,5 +1,391 @@
-package com.umc_9th.sleepinghero.domain.sleep.service;
+//package com.umc_9th.sleepinghero.domain.sleep.service;
+//
+//
+//import com.umc_9th.sleepinghero.domain.hero.dto.res.LevelChange;
+//import com.umc_9th.sleepinghero.domain.hero.entity.Hero;
+//import com.umc_9th.sleepinghero.domain.hero.exception.HeroErrorCode;
+//import com.umc_9th.sleepinghero.domain.hero.repository.HeroRepository;
+//import com.umc_9th.sleepinghero.domain.hero.service.HeroService;
+//import com.umc_9th.sleepinghero.domain.hero.util.LevelPolicy;
+//import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
+//import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
+//import com.umc_9th.sleepinghero.domain.member.entity.Member;
+//import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBack;
+//import com.umc_9th.sleepinghero.domain.sleep.converter.SleepConverter;
+//import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
+//import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
+//import com.umc_9th.sleepinghero.domain.sleep.entity.SleepGoal;
+//import com.umc_9th.sleepinghero.domain.sleep.entity.SleepRecord;
+//import com.umc_9th.sleepinghero.domain.sleep.entity.SleepReview;
+//import com.umc_9th.sleepinghero.domain.sleep.exception.SleepErrorCode;
+//import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
+//import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
+//import com.umc_9th.sleepinghero.domain.sleep.repository.SleepReviewRepository;
+//import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
+//import lombok.RequiredArgsConstructor;
+//import org.springframework.data.domain.Page;
+//import org.springframework.data.domain.PageRequest;
+//import org.springframework.stereotype.Service;
+//import org.springframework.transaction.annotation.Transactional;
+//
+//import java.time.Duration;
+//import java.time.LocalDate;
+//import java.time.LocalDateTime;
+//import java.time.LocalTime;
+//
+//
+//@Service
+//@RequiredArgsConstructor
+//public class SleepServiceImpl implements SleepService {
+//
+//    private final SleepRecordRepository sleepRecordRepository;
+//    private final SleepGoalRepository sleepGoalRepository;
+//    private final SleepReviewRepository sleepReviewRepository;
+//    private final MemberRepository memberRepository;
+//    private final HeroRepository heroRepository;
+//    private final HeroService heroService;
+//    private final SleepFeedBackService sleepFeedBackService;
+//
+//    private final SleepConverter sleepConverter;
+//
+//    @Override
+//    @Transactional(readOnly = true)
+//    public Page<SleepRecordResponse> getSleepRecords(int page, int size, Long memberId) {
+//
+//        validateMember(memberId);
+//
+//        PageRequest request = PageRequest.of(page, size);
+//
+//        Page<SleepRecord> records = sleepRecordRepository.findByMemberId(
+//                memberId,request
+//        );
+//
+//        return records.map(sleepConverter::toDto);
+//    }
+//
+//    @Override
+//    @Transactional(readOnly = true)
+//    public SleepRecordResponse getSleepRecord(Long sleepRecordId, Long memberId) {
+//
+//        validateMember(memberId);
+//
+//        SleepRecord record = getOrThrowSleepRecord(memberId, sleepRecordId);
+//
+//        return sleepConverter.toDto(record);
+//    }
+//
+//    @Override
+//    @Transactional
+//    public SleepStartResponse startSleep(Long memberId) {
+//
+//        Member member = getOrThrowMember(memberId);
+//
+//        validateSleepStatus(member);
+//
+//        SleepGoal goal = getOrThrowGoal(memberId);
+//
+//        LocalDateTime now = LocalDateTime.now().withNano(0);
+//        validateSleepTime(now, goal.getSleepTime());
+//
+//        SleepRecord record = SleepRecord.builder()
+//                .sleptTime(LocalDateTime.now().withNano(0))
+//                .member(member)
+//                .build();
+//
+//        sleepRecordRepository.save(record);
+//
+//        member.startSleep();
+//
+//        return sleepConverter.toDto(record,member.isSleepStatus());
+//    }
+//
+//
+//    @Override
+//    @Transactional
+//    public SleepEndResponse endSleep(Long memberId) {
+//
+//        Member member = getOrThrowMember(memberId);
+//
+//        validateNonSleepStatus(member);
+//
+//        Hero hero = getOrThrowHero(memberId);
+//
+//        SleepRecord record = getOrThrowNotWakeRecord(memberId);
+//
+//        SleepGoal goal = getOrThrowGoal(memberId);
+//
+//        LocalDateTime now = LocalDateTime.now().withNano(0);
+//        record.updateWokeTime(now);
+//        boolean isSuccess = applyGoalResult(goal,record, now); // 목표 기상시간보다 10분 이상 일찍 일어나면 실패
+//
+//        member.endSleep();
+//
+//        Duration d = Duration.between(record.getSleptTime(), record.getWokeTime());
+//
+//        SleepReward reward = getSleepReward(hero, goal, d, isSuccess);
+//
+//        return sleepConverter.toDto(
+//                record,
+//                d.toMinutes(),
+//                reward,
+//                hero.getCurrentStage()
+//        );
+//    }
+//
+//    @Override
+//    public SleepReviewResponse createReview(SleepReviewRequest request, Long memberId) {
+//
+//        validateMember(memberId);
+//        validateSleepRecord(request.recordId());
+//
+//        SleepGoal goal = getOrThrowGoal(memberId);
+//        SleepRecord record = getOrThrowWakeRecord(memberId);
+//
+//        System.out.println(request.recordId() + " " + record.getId());
+//
+//        validateDifferentSleepRecord(request.recordId(), record.getId());
+//
+//        SleepReview review = SleepReview.builder()
+//                .star(request.star())
+//                .comment(request.comment())
+//                .sleepRecord(record)
+//                .build();
+//
+//        sleepReviewRepository.save(review);
+//
+//        long sleepDuration = Duration.between(record.getSleptTime(), record.getWokeTime()).toMinutes();
+//        long goalDuration = durationMinutes(goal.getSleepTime(), goal.getWakeTime());
+//
+//        AiSleepFeedBack feedBack =sleepFeedBackService.feedback(
+//                sleepDuration, goalDuration, goal.getCurrentStreak(), review
+//        );
+//
+//        return sleepConverter.toDto(review.getId(), feedBack);
+//
+//
+//    }
+//
+//    @Override
+//    public long testRecord(Long memberId) {
+//
+//        Member member = getOrThrowMember(memberId);
+//
+//        if(!sleepGoalRepository.existsByMemberId(memberId)) {
+//            SleepGoal goal = SleepGoal.builder()
+//                    .member(member)
+//                    .sleepTime(LocalTime.now().withNano(0))
+//                    .wakeTime(LocalTime.now().withNano(0).plusHours(3))
+//                    .build();
+//
+//            sleepGoalRepository.save(goal);
+//        }
+//
+//        SleepRecord record = SleepRecord.builder()
+//                .sleptTime(LocalDateTime.now().withNano(0))
+//                .wokeTime(LocalDateTime.now().withNano(0).plusHours(3))
+//                .isSuccess(true)
+//                .member(member)
+//                .build();
+//
+//        sleepRecordRepository.save(record);
+//
+//        return record.getId();
+//
+//    }
+//
+//
+//    // ------------------------- private -----------------------------
+//
+//    // ------------------------------ 조회 로직 ------------------------------
+//
+//
+//    private Member getOrThrowMember(Long memberId) {
+//        return memberRepository.findById(memberId)
+//                .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
+//    }
+//
+//    private SleepGoal getOrThrowGoal(Long memberId) {
+//        return sleepGoalRepository.findByMemberId(memberId)
+//                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_GOAL_NOT_FOUND));
+//    }
+//
+//    private SleepRecord getOrThrowSleepRecord(Long memberId, Long sleepRecordId) {
+//        return sleepRecordRepository.findByIdAndMemberId(sleepRecordId, memberId)
+//                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND));
+//    }
+//
+//    // 종료되지 않은 제일 최신 기록 조회
+//    private SleepRecord getOrThrowNotWakeRecord(Long memberId) {
+//        return sleepRecordRepository
+//                .findTopByMemberIdAndWokeTimeIsNullOrderBySleptTimeDesc(memberId)
+//                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
+//    }
+//
+//    // 종료되지 않은 제일 최신 기록 조회
+//    private SleepRecord getOrThrowWakeRecord(Long memberId) {
+//        return sleepRecordRepository
+//                .findTopByMemberIdAndWokeTimeIsNotNullOrderByWokeTimeDesc(memberId)
+//                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
+//    }
+//
+//    private Hero getOrThrowHero(Long memberId) {
+//        return heroRepository.findByMemberId(memberId)
+//                .orElseThrow(() -> new GeneralException(HeroErrorCode.HERO_NOT_FOUND));
+//    }
+//
+//    // 보상 생성
+//    private SleepReward getSleepReward(Hero hero, SleepGoal goal, Duration duration, boolean isSuccess) {
+//
+//        int gainedExp = calculateGainedExp(duration, goal);
+//
+//        LevelChange level = updateLevel(hero,gainedExp);
+//
+//        return new SleepReward(gainedExp, isSuccess, level);
+//    }
+//
+//
+//    // ------------------------------ 상태 변경 로직 ------------------------------
+//
+//    // 수면 목표 결과 처리
+//    private boolean applyGoalResult(SleepGoal goal, SleepRecord record, LocalDateTime now){
+//
+//        LocalDateTime slept = record.getSleptTime();
+//        LocalDateTime goalDateTime = LocalDateTime.of(slept.toLocalDate(), goal.getWakeTime());
+//
+//        // 목표시간이 다음날 아침에 일어나는 경우
+//        if (goal.getWakeTime().isBefore(slept.toLocalTime())) {
+//            goalDateTime = goalDateTime.plusDays(1);
+//        }
+//
+//        LocalDateTime failTime = goalDateTime.minusMinutes(10);
+//
+//        if(failTime.isBefore(now)) {  // 목표시간 - 10분 이후에 기상한 경우
+//            goal.successGoal();
+//            return true;
+//        }
+//        else {
+//            goal.failGoal();
+//            return false;
+//        }
+//    }
+//
+//    // 레벨 변경
+//    private LevelChange updateLevel(Hero hero, int gainedExp) {
+//        int prevLevel = hero.getCurrentLevel();
+//
+//        hero.gainExp(gainedExp);
+//
+//        int currentLevel = hero.getCurrentLevel();
+//
+//        if (currentLevel > prevLevel) {
+//            heroService.checkAndUnlockSkin(hero.getMember(), currentLevel);
+//        }
+//
+//        return new LevelChange(
+//                prevLevel,
+//                currentLevel,
+//                hero.getCurrentExp(),
+//                LevelPolicy.needExp(currentLevel)
+//        );
+//    }
+//
+//
+//    // ------------------------------ 검증 로직 ------------------------------
+//
+//    // 회원 존재 여부 검증
+//    private void validateMember(Long memberId) {
+//        if(!memberRepository.existsById(memberId)) {
+//            throw new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND);
+//        }
+//    }
+//
+//    // 수면 시작 시간 내 요청 검증
+//    private void validateSleepTime(LocalDateTime now, LocalTime goalSleepTime){
+//        if( calculateNearestGoalTimeMinutes(now, goalSleepTime) > 10)
+//            throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INVALID);
+//
+//    }
+//
+//    // 수면 상태 검증
+//    private void validateSleepStatus(Member member){
+//        if(member.isSleepStatus())
+//            throw new GeneralException(SleepErrorCode.SLEEP_ALREADY_IN_PROGRESS);
+//    }
+//
+//    private void validateNonSleepStatus(Member member){
+//        if(!member.isSleepStatus())
+//            throw new GeneralException(SleepErrorCode.SLEEP_NOT_IN_PROGRESS);
+//    }
+//
+//    private void validateDifferentSleepRecord(Long recordId, Long otherRecordId){
+//        if(otherRecordId == null && recordId == null){
+//            throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INVALID);
+//        }
+//    }
+//
+//    private void validateSleepRecord(Long recordId){
+//        if(!sleepRecordRepository.existsById(recordId))
+//            throw new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND);
+//    }
+//
+//    // ------------------------------ 계산 로직 ------------------------------
+//
+//    // 허용 범위 내 시간 계산
+//    private long calculateNearestGoalTimeMinutes(LocalDateTime now, LocalTime goalTime) {
+//
+//        LocalDateTime today = LocalDateTime.of(now.toLocalDate(), goalTime);
+//        LocalDateTime yesterday = today.minusDays(1);
+//        LocalDateTime tomorrow = today.plusDays(1);
+//
+//        return Math.min(
+//                Duration.between(now, yesterday).abs().toMinutes()
+//                ,Math.min(
+//                        Duration.between(now, today).abs().toMinutes(),
+//                        Duration.between(now, tomorrow).abs().toMinutes()
+//                ));
+//    }
+//
+//    // 경험치 계산 로직
+//    private int calculateGainedExp(Duration d, SleepGoal goal) {
+//        long m = d.toMinutes();
+//
+//        int baseExp;
+//        if (m <= 4 * 60) baseExp = 0;
+//        else if (m <= 5 * 60) baseExp = 20;
+//        else if (m <= 6 * 60) baseExp = 40;
+//        else if (m <= 7 * 60) baseExp = 60;
+//        else if (m <= 8 * 60) baseExp = 80;
+//        else baseExp = 100;
+//
+//        // 디버프(목표 미수행 3일 이상)
+//        boolean debuff = goal != null && goal.getNonSleepStreak() >= 3;
+//
+//        if (!debuff) return baseExp;
+//
+//        // 0.8배
+//        return (int) Math.round(baseExp * 0.8);
+//    }
+//
+//    private long durationMinutes(LocalTime start, LocalTime end) {
+//        LocalDate today = LocalDate.now();
+//
+//        LocalDateTime startDT = LocalDateTime.of(today, start);
+//        LocalDateTime endDT   = LocalDateTime.of(today, end);
+//
+//        if (end.isBefore(start)) {
+//            endDT = endDT.plusDays(1); // 자정 넘김 처리
+//        }
+//
+//        return Duration.between(startDT, endDT).toMinutes();
+//    }
+//
+//
+//
+//}
+//
+//
 
+package com.umc_9th.sleepinghero.domain.sleep.service;
 
 import com.umc_9th.sleepinghero.domain.hero.dto.res.LevelChange;
 import com.umc_9th.sleepinghero.domain.hero.entity.Hero;
@@ -7,9 +393,9 @@ import com.umc_9th.sleepinghero.domain.hero.exception.HeroErrorCode;
 import com.umc_9th.sleepinghero.domain.hero.repository.HeroRepository;
 import com.umc_9th.sleepinghero.domain.hero.service.HeroService;
 import com.umc_9th.sleepinghero.domain.hero.util.LevelPolicy;
+import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
-import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.sleep.ai.AiSleepFeedBack;
 import com.umc_9th.sleepinghero.domain.sleep.converter.SleepConverter;
 import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
@@ -21,6 +407,8 @@ import com.umc_9th.sleepinghero.domain.sleep.exception.SleepErrorCode;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepReviewRepository;
+import com.umc_9th.sleepinghero.domain.sleep.util.SleepRewardPolicy;
+import com.umc_9th.sleepinghero.domain.sleep.util.SleepTimeCalculator;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,10 +417,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-
 
 @Service
 @RequiredArgsConstructor
@@ -40,13 +426,12 @@ public class SleepServiceImpl implements SleepService {
 
     private final SleepRecordRepository sleepRecordRepository;
     private final SleepGoalRepository sleepGoalRepository;
-    private final SleepReviewRepository sleepReviewRepository;
     private final MemberRepository memberRepository;
     private final HeroRepository heroRepository;
     private final HeroService heroService;
-    private final SleepFeedBackService sleepFeedBackService;
-
     private final SleepConverter sleepConverter;
+
+    // ================= 조회 =================
 
     @Override
     @Transactional(readOnly = true)
@@ -56,11 +441,8 @@ public class SleepServiceImpl implements SleepService {
 
         PageRequest request = PageRequest.of(page, size);
 
-        Page<SleepRecord> records = sleepRecordRepository.findByMemberId(
-                memberId,request
-        );
-
-        return records.map(sleepConverter::toDto);
+        return sleepRecordRepository.findByMemberId(memberId, request)
+                .map(sleepConverter::toDto);
     }
 
     @Override
@@ -74,21 +456,23 @@ public class SleepServiceImpl implements SleepService {
         return sleepConverter.toDto(record);
     }
 
+    // ================= 수면 시작 =================
+
     @Override
     @Transactional
     public SleepStartResponse startSleep(Long memberId) {
 
         Member member = getOrThrowMember(memberId);
-
         validateSleepStatus(member);
 
         SleepGoal goal = getOrThrowGoal(memberId);
 
         LocalDateTime now = LocalDateTime.now().withNano(0);
+
         validateSleepTime(now, goal.getSleepTime());
 
         SleepRecord record = SleepRecord.builder()
-                .sleptTime(LocalDateTime.now().withNano(0))
+                .sleptTime(now)
                 .member(member)
                 .build();
 
@@ -96,73 +480,48 @@ public class SleepServiceImpl implements SleepService {
 
         member.startSleep();
 
-        return sleepConverter.toDto(record,member.isSleepStatus());
+        return sleepConverter.toDto(record, member.isSleepStatus());
     }
 
+    // ================= 수면 종료 =================
 
     @Override
     @Transactional
     public SleepEndResponse endSleep(Long memberId) {
 
         Member member = getOrThrowMember(memberId);
-
         validateNonSleepStatus(member);
 
         Hero hero = getOrThrowHero(memberId);
-
         SleepRecord record = getOrThrowNotWakeRecord(memberId);
-
         SleepGoal goal = getOrThrowGoal(memberId);
 
         LocalDateTime now = LocalDateTime.now().withNano(0);
+
         record.updateWokeTime(now);
-        boolean isSuccess = applyGoalResult(goal,record, now); // 목표 기상시간보다 10분 이상 일찍 일어나면 실패
+
+        boolean isSuccess = goal.evaluateGoal(record, now);
 
         member.endSleep();
 
-        Duration d = Duration.between(record.getSleptTime(), record.getWokeTime());
+        Duration duration =
+                Duration.between(record.getSleptTime(), record.getWokeTime());
 
-        SleepReward reward = getSleepReward(hero, goal, d, isSuccess);
+        int gainedExp =
+                SleepRewardPolicy.calculateGainedExp(duration, goal);
+
+        LevelChange levelChange =
+                updateLevel(hero, gainedExp);
+
+        SleepReward reward =
+                new SleepReward(gainedExp, isSuccess, levelChange);
 
         return sleepConverter.toDto(
                 record,
-                d.toMinutes(),
+                duration.toMinutes(),
                 reward,
                 hero.getCurrentStage()
         );
-    }
-
-    @Override
-    public SleepReviewResponse createReview(SleepReviewRequest request, Long memberId) {
-
-        validateMember(memberId);
-        validateSleepRecord(request.recordId());
-
-        SleepGoal goal = getOrThrowGoal(memberId);
-        SleepRecord record = getOrThrowWakeRecord(memberId);
-
-        System.out.println(request.recordId() + " " + record.getId());
-
-        validateDifferentSleepRecord(request.recordId(), record.getId());
-
-        SleepReview review = SleepReview.builder()
-                .star(request.star())
-                .comment(request.comment())
-                .sleepRecord(record)
-                .build();
-
-        sleepReviewRepository.save(review);
-
-        long sleepDuration = Duration.between(record.getSleptTime(), record.getWokeTime()).toMinutes();
-        long goalDuration = durationMinutes(goal.getSleepTime(), goal.getWakeTime());
-
-        AiSleepFeedBack feedBack =sleepFeedBackService.feedback(
-                sleepDuration, goalDuration, goal.getCurrentStreak(), review
-        );
-
-        return sleepConverter.toDto(review.getId(), feedBack);
-
-
     }
 
     @Override
@@ -193,84 +552,52 @@ public class SleepServiceImpl implements SleepService {
 
     }
 
+//    // ================= 리뷰 =================
+//
+//    @Override
+//    @Transactional
+//    public SleepReviewResponse createReview(SleepReviewRequest request, Long memberId) {
+//
+//        validateMember(memberId);
+//        validateSleepRecord(request.recordId());
+//
+//        SleepGoal goal = getOrThrowGoal(memberId);
+//        SleepRecord record = getOrThrowWakeRecord(memberId);
+//
+//        validateDifferentSleepRecord(request.recordId(), record.getId());
+//
+//        SleepReview review = SleepReview.builder()
+//                .star(request.star())
+//                .comment(request.comment())
+//                .sleepRecord(record)
+//                .build();
+//
+//        sleepReviewRepository.save(review);
+//
+//        long sleepDuration =
+//                Duration.between(record.getSleptTime(), record.getWokeTime()).toMinutes();
+//
+//        long goalDuration =
+//                SleepTimeCalculator.durationMinutes(
+//                        goal.getSleepTime(),
+//                        goal.getWakeTime()
+//                );
+//
+//        AiSleepFeedBack feedBack =
+//                sleepFeedBackService.feedback(
+//                        sleepDuration,
+//                        goalDuration,
+//                        goal.getCurrentStreak(),
+//                        review
+//                );
+//
+//        return sleepConverter.toDto(review.getId(), feedBack);
+//    }
 
-    // ------------------------- private -----------------------------
+    // ================= 레벨 처리 =================
 
-    // ------------------------------ 조회 로직 ------------------------------
-
-
-    private Member getOrThrowMember(Long memberId) {
-        return memberRepository.findById(memberId)
-                .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
-    }
-
-    private SleepGoal getOrThrowGoal(Long memberId) {
-        return sleepGoalRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_GOAL_NOT_FOUND));
-    }
-
-    private SleepRecord getOrThrowSleepRecord(Long memberId, Long sleepRecordId) {
-        return sleepRecordRepository.findByIdAndMemberId(sleepRecordId, memberId)
-                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND));
-    }
-
-    // 종료되지 않은 제일 최신 기록 조회
-    private SleepRecord getOrThrowNotWakeRecord(Long memberId) {
-        return sleepRecordRepository
-                .findTopByMemberIdAndWokeTimeIsNullOrderBySleptTimeDesc(memberId)
-                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
-    }
-
-    // 종료되지 않은 제일 최신 기록 조회
-    private SleepRecord getOrThrowWakeRecord(Long memberId) {
-        return sleepRecordRepository
-                .findTopByMemberIdAndWokeTimeIsNotNullOrderByWokeTimeDesc(memberId)
-                .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
-    }
-
-    private Hero getOrThrowHero(Long memberId) {
-        return heroRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new GeneralException(HeroErrorCode.HERO_NOT_FOUND));
-    }
-
-    // 보상 생성
-    private SleepReward getSleepReward(Hero hero, SleepGoal goal, Duration duration, boolean isSuccess) {
-
-        int gainedExp = calculateGainedExp(duration, goal);
-
-        LevelChange level = updateLevel(hero,gainedExp);
-
-        return new SleepReward(gainedExp, isSuccess, level);
-    }
-
-
-    // ------------------------------ 상태 변경 로직 ------------------------------
-
-    // 수면 목표 결과 처리
-    private boolean applyGoalResult(SleepGoal goal, SleepRecord record, LocalDateTime now){
-
-        LocalDateTime slept = record.getSleptTime();
-        LocalDateTime goalDateTime = LocalDateTime.of(slept.toLocalDate(), goal.getWakeTime());
-
-        // 목표시간이 다음날 아침에 일어나는 경우
-        if (goal.getWakeTime().isBefore(slept.toLocalTime())) {
-            goalDateTime = goalDateTime.plusDays(1);
-        }
-
-        LocalDateTime failTime = goalDateTime.minusMinutes(10);
-
-        if(failTime.isBefore(now)) {  // 목표시간 - 10분 이후에 기상한 경우
-            goal.successGoal();
-            return true;
-        }
-        else {
-            goal.failGoal();
-            return false;
-        }
-    }
-
-    // 레벨 변경
     private LevelChange updateLevel(Hero hero, int gainedExp) {
+
         int prevLevel = hero.getCurrentLevel();
 
         hero.gainExp(gainedExp);
@@ -289,98 +616,83 @@ public class SleepServiceImpl implements SleepService {
         );
     }
 
+    // ================= 검증 & 조회 =================
 
-    // ------------------------------ 검증 로직 ------------------------------
+    private Member getOrThrowMember(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
+    }
 
-    // 회원 존재 여부 검증
+    private SleepGoal getOrThrowGoal(Long memberId) {
+        return sleepGoalRepository.findByMemberId(memberId)
+                .orElseThrow(() ->
+                        new GeneralException(SleepErrorCode.SLEEP_GOAL_NOT_FOUND));
+    }
+
+    private SleepRecord getOrThrowSleepRecord(Long memberId, Long sleepRecordId) {
+        return sleepRecordRepository.findByIdAndMemberId(sleepRecordId, memberId)
+                .orElseThrow(() ->
+                        new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND));
+    }
+
+    private SleepRecord getOrThrowNotWakeRecord(Long memberId) {
+        return sleepRecordRepository
+                .findTopByMemberIdAndWokeTimeIsNullOrderBySleptTimeDesc(memberId)
+                .orElseThrow(() ->
+                        new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
+    }
+
+    private SleepRecord getOrThrowWakeRecord(Long memberId) {
+        return sleepRecordRepository
+                .findTopByMemberIdAndWokeTimeIsNotNullOrderByWokeTimeDesc(memberId)
+                .orElseThrow(() ->
+                        new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
+    }
+
+    private Hero getOrThrowHero(Long memberId) {
+        return heroRepository.findByMemberId(memberId)
+                .orElseThrow(() ->
+                        new GeneralException(HeroErrorCode.HERO_NOT_FOUND));
+    }
+
     private void validateMember(Long memberId) {
-        if(!memberRepository.existsById(memberId)) {
+        if (!memberRepository.existsById(memberId)) {
             throw new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND);
         }
     }
 
-    // 수면 시작 시간 내 요청 검증
-    private void validateSleepTime(LocalDateTime now, LocalTime goalSleepTime){
-        if( calculateNearestGoalTimeMinutes(now, goalSleepTime) > 10)
-            throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INVALID);
-
-    }
-
-    // 수면 상태 검증
-    private void validateSleepStatus(Member member){
-        if(member.isSleepStatus())
+    private void validateSleepStatus(Member member) {
+        if (member.isSleepStatus()) {
             throw new GeneralException(SleepErrorCode.SLEEP_ALREADY_IN_PROGRESS);
+        }
     }
 
-    private void validateNonSleepStatus(Member member){
-        if(!member.isSleepStatus())
+    private void validateNonSleepStatus(Member member) {
+        if (!member.isSleepStatus()) {
             throw new GeneralException(SleepErrorCode.SLEEP_NOT_IN_PROGRESS);
+        }
     }
 
-    private void validateDifferentSleepRecord(Long recordId, Long otherRecordId){
-        if(otherRecordId == null && recordId == null){
+    private void validateSleepTime(LocalDateTime now, LocalTime goalSleepTime) {
+
+        long diff =
+                SleepTimeCalculator.calculateNearestGoalTimeMinutes(now, goalSleepTime);
+
+        if (diff > 10) {
             throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INVALID);
         }
     }
 
-    private void validateSleepRecord(Long recordId){
-        if(!sleepRecordRepository.existsById(recordId))
-            throw new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND);
-    }
-
-    // ------------------------------ 계산 로직 ------------------------------
-
-    // 허용 범위 내 시간 계산
-    private long calculateNearestGoalTimeMinutes(LocalDateTime now, LocalTime goalTime) {
-
-        LocalDateTime today = LocalDateTime.of(now.toLocalDate(), goalTime);
-        LocalDateTime yesterday = today.minusDays(1);
-        LocalDateTime tomorrow = today.plusDays(1);
-
-        return Math.min(
-                Duration.between(now, yesterday).abs().toMinutes()
-                ,Math.min(
-                        Duration.between(now, today).abs().toMinutes(),
-                        Duration.between(now, tomorrow).abs().toMinutes()
-                ));
-    }
-
-    // 경험치 계산 로직
-    private int calculateGainedExp(Duration d, SleepGoal goal) {
-        long m = d.toMinutes();
-
-        int baseExp;
-        if (m <= 4 * 60) baseExp = 0;
-        else if (m <= 5 * 60) baseExp = 20;
-        else if (m <= 6 * 60) baseExp = 40;
-        else if (m <= 7 * 60) baseExp = 60;
-        else if (m <= 8 * 60) baseExp = 80;
-        else baseExp = 100;
-
-        // 디버프(목표 미수행 3일 이상)
-        boolean debuff = goal != null && goal.getNonSleepStreak() >= 3;
-
-        if (!debuff) return baseExp;
-
-        // 0.8배
-        return (int) Math.round(baseExp * 0.8);
-    }
-
-    private long durationMinutes(LocalTime start, LocalTime end) {
-        LocalDate today = LocalDate.now();
-
-        LocalDateTime startDT = LocalDateTime.of(today, start);
-        LocalDateTime endDT   = LocalDateTime.of(today, end);
-
-        if (end.isBefore(start)) {
-            endDT = endDT.plusDays(1); // 자정 넘김 처리
-        }
-
-        return Duration.between(startDT, endDT).toMinutes();
-    }
-
-
-
+//    private void validateSleepRecord(Long recordId) {
+//        if (!sleepRecordRepository.existsById(recordId)) {
+//            throw new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND);
+//        }
+//    }
+//
+//    private void validateDifferentSleepRecord(Long recordId, Long otherRecordId) {
+//        if (!recordId.equals(otherRecordId)) {
+//            throw new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND);
+//        }
+//    }
 }
-
-
