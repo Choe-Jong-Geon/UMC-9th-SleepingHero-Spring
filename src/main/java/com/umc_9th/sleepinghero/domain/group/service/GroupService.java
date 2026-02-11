@@ -57,8 +57,8 @@ public class GroupService {
         GroupMember groupMaster = GroupMember.builder()
                 .member(member)
                 .heroGroups(savedGroup)
-                .groupRole(GroupRole.LEADER) // enum에 MASTER가 있다고 가정
-                .status(Status.APPROVE)      // 생성자는 대기 없이 바로 승인 상태
+                .groupRole(GroupRole.LEADER)
+                .status(Status.APPROVE)
                 .build();
 
         groupMemberRepository.save(groupMaster);
