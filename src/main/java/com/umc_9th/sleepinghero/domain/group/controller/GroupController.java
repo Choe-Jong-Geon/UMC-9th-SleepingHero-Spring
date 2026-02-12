@@ -2,7 +2,7 @@ package com.umc_9th.sleepinghero.domain.group.controller;
 
 import com.umc_9th.sleepinghero.domain.group.dto.req.*;
 import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInsideRankingResponse;
-import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInvitaionRequest;
+import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInvitationResponse;
 import com.umc_9th.sleepinghero.domain.group.dto.res.GroupRankResponse;
 import com.umc_9th.sleepinghero.domain.group.service.GroupService;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
@@ -45,7 +45,7 @@ public class GroupController implements GroupControllerDocs {
     }
 
     @GetMapping("/requests/pending")
-    public ApiResponse<List<GroupInvitaionRequest>> getPendingRequests(
+    public ApiResponse<List<GroupInvitationResponse>> getPendingRequests(
             @AuthenticationPrincipal Long memberId) {
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, groupService.getPendingGroupRequests(memberId));
     }
