@@ -52,6 +52,7 @@
 
 ---
 ## 🛜 인프라 구성도
+<img width="1709" height="959" alt="image" src="https://github.com/user-attachments/assets/cb272dce-fb74-49ee-94b4-b515d9f36a37" />
 
 - 빠른 개발과 배포를 위해 단일 EC2 위에 백엔드 서버, mysql, redis가 올라가있는 모놀리식 구조
 - CI/CD 파이프라인으로 메인브랜치로 push시 배포 자동화 
