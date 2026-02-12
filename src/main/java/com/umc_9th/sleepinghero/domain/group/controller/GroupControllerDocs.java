@@ -2,10 +2,12 @@ package com.umc_9th.sleepinghero.domain.group.controller;
 
 import com.umc_9th.sleepinghero.domain.group.dto.req.*;
 import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInsideRankingResponse;
+import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInvitaionRequest;
 import com.umc_9th.sleepinghero.domain.group.dto.res.GroupRankResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.List;
 
@@ -18,8 +20,11 @@ public interface GroupControllerDocs {
     @Operation(summary = "전체 그룹 랭킹 조회 API", description = "모든 그룹의 평균 수면 시간 및 인원수를 기준으로 랭킹을 조회합니다.")
     ApiResponse<List<GroupRankResponse>> getGroupRankings();
 
-    @Operation(summary = "그룹 초대/가입 요청 API", description = "특정 유저를 그룹에 초대하거나 가입 요청을 보냅니다.")
+    @Operation(summary = "그룹 초대/가입 요청 API", description = "특정 유저를 그룹에 초대합니다.")
     ApiResponse<String> inviteToGroup(Long memberId, GroupInvitationRequest request);
+
+    @Operation(summary = "내가 받은 그룹 가입 요청 목록 조회 API", description = "나에게 온 그룹 초대/가입 요청 중 대기(PENDING) 상태인 목록을 조회합니다.")
+    ApiResponse<List<GroupInvitaionRequest>> getPendingRequests(@AuthenticationPrincipal Long memberId);
 
     @Operation(summary = "그룹 초대 승인/거절 API", description = "받은 그룹 초대 요청을 받은 멤버 수락 Or 거절 (APPROVE/REJECTED")
     ApiResponse<String> processGroupInvitation(Long memberId, String status, GroupRequestAccept request);
