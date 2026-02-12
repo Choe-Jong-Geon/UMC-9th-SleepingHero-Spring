@@ -10,12 +10,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class SleepConverter {
 
-    public SleepRecordResponse toDto(SleepRecord sleepRecord) {
+    public SleepRecordResponse toDto(SleepRecord record, SleepFeedBack feedBack, SleepReview review, long minutes) {
         return new SleepRecordResponse(
-          sleepRecord.getId(),
-            sleepRecord.getSleptTime(),
-            sleepRecord.getWokeTime(),
-            sleepRecord.isSuccess()
+            record.getId(),
+                review.getStar(),
+                record.getSleptTime().toLocalDate(),
+                minutes,
+                feedBack.getSummary(),
+                feedBack.getPositives(),
+                feedBack.getImprovements(),
+                feedBack.getCheering()
         );
     }
 
