@@ -125,7 +125,7 @@ public class SleepServiceImpl implements SleepService {
                 Duration.between(record.getSleptTime(), record.getWokeTime());
 
         int gainedExp =
-                SleepRewardPolicy.calculateGainedExp(duration, goal);
+                SleepRewardPolicy.calculateGainedExp(duration, goal, hero);
 
         LevelChange levelChange =
                 updateLevel(hero, gainedExp);

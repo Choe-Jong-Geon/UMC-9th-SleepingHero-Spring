@@ -1,12 +1,13 @@
 package com.umc_9th.sleepinghero.domain.sleep.util;
 
+import com.umc_9th.sleepinghero.domain.hero.entity.Hero;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepGoal;
 
 import java.time.Duration;
 
 public class SleepRewardPolicy {
 
-    public static int calculateGainedExp(Duration d, SleepGoal goal) {
+    public static int calculateGainedExp(Duration d, SleepGoal goal, Hero hero) {
 
         long m = d.toMinutes();
 
@@ -18,10 +19,10 @@ public class SleepRewardPolicy {
         else if (m <= 8 * 60) baseExp = 80;
         else baseExp = 100;
 
-        boolean debuff = goal != null && goal.getNonSleepStreak() >= 3;
+        boolean deBuff = goal != null && goal.getNonSleepStreak() > 2;
+        hero.changeDeBuff(deBuff);
+//        if(deBuff) return (int) Math.round(baseExp * 0.8);
 
-        if (!debuff) return baseExp;
-
-        return (int) Math.round(baseExp * 0.8);
+        return baseExp;
     }
 }
