@@ -242,7 +242,7 @@ public class MemberService {
     }
 
     private Long calculateTotalSleepSeconds(Member member) {
-        return sleepRecordRepository.findAllByMemberAndSuccess(member, true).stream()
+        return sleepRecordRepository.findAllByMemberAndIsSuccess(member, true).stream()
                 .filter(sr -> sr.getSleptTime() != null && sr.getWokeTime() != null)
                 .mapToLong(sr -> Duration.between(sr.getSleptTime(), sr.getWokeTime()).getSeconds())
                 .sum();
