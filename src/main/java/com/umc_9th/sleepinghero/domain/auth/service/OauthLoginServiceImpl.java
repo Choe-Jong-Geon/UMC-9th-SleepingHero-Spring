@@ -90,4 +90,5 @@ public class OauthLoginServiceImpl implements OauthLoginService {
         return jwtTokenProvider.createAccessToken(member.getId(), member.getRole());
     }
 
+
 }
