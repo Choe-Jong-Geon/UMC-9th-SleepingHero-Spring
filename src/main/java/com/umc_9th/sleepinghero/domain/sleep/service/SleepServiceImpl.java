@@ -10,6 +10,7 @@ import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
 import com.umc_9th.sleepinghero.domain.sleep.converter.SleepConverter;
+import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepGoalSettingRequest;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepFeedBack;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepGoal;
@@ -124,7 +125,7 @@ public class SleepServiceImpl implements SleepService {
                 Duration.between(record.getSleptTime(), record.getWokeTime());
 
         int gainedExp =
-                SleepRewardPolicy.calculateGainedExp(duration, goal);
+                SleepRewardPolicy.calculateGainedExp(duration, goal, hero);
 
         LevelChange levelChange =
                 updateLevel(hero, gainedExp);
@@ -168,8 +169,29 @@ public class SleepServiceImpl implements SleepService {
 
     }
 
-    // ================= 레벨 처리 =================
 
+    @Override
+    @Transactional
+    public SleepGoalSettingResponse settingSleep(SleepGoalSettingRequest request, Long memberId) {
+
+        Member member = getOrThrowMember(memberId);
+
+        SleepGoal goal;
+        if (!validateSleepGoal(memberId)){
+            goal = generateSleepGoal(request, member);
+        }else {
+            goal = getOrThrowGoal(memberId);
+            goal.changeSleepTime(request);
+        }
+
+        return new SleepGoalSettingResponse(
+                goal.getSleepTime(),
+                goal.getWakeTime(),
+                SleepTimeCalculator.durationMinutes(goal.getSleepTime(),goal.getWakeTime())
+        );
+    }
+
+    // ================= 레벨 처리 =================
     private LevelChange updateLevel(Hero hero, int gainedExp) {
 
         int prevLevel = hero.getCurrentLevel();
@@ -190,8 +212,8 @@ public class SleepServiceImpl implements SleepService {
         );
     }
 
-    // ================= 검증 & 조회 =================
 
+    // ================= 검증 & 조회 =================
     private Member getOrThrowMember(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() ->
@@ -217,12 +239,6 @@ public class SleepServiceImpl implements SleepService {
                         new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
     }
 
-    private SleepRecord getOrThrowWakeRecord(Long memberId) {
-        return sleepRecordRepository
-                .findTopByMemberIdAndWokeTimeIsNotNullOrderByWokeTimeDesc(memberId)
-                .orElseThrow(() ->
-                        new GeneralException(SleepErrorCode.SLEEP_SESSION_INCONSISTENT));
-    }
 
     private Hero getOrThrowHero(Long memberId) {
         return heroRepository.findByMemberId(memberId)
@@ -245,6 +261,17 @@ public class SleepServiceImpl implements SleepService {
             throw new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND);
         }
     }
+
+    private boolean validateSleepGoal(Long memberId) {
+
+        long count = sleepGoalRepository.countByMemberId(memberId);
+
+        if (count > 1)
+            throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INTEGRITY_ERROR);
+
+        return count == 1;
+    }
+
 
     private void validateSleepStatus(Member member) {
         if (member.isSleepStatus()) {
@@ -269,7 +296,7 @@ public class SleepServiceImpl implements SleepService {
     }
 
 
-    // ================= 값 변환 =================
+    // ================= 값 변환 및 생성 =================
     private SleepRecordResponse convertToResponse(SleepRecord record) {
 
         SleepReview review = getOrThrowReview(record.getId());
@@ -279,5 +306,23 @@ public class SleepServiceImpl implements SleepService {
         );
 
         return sleepConverter.toDto(record, feedBack, review, minutes);
+    }
+
+
+    // ================= 생성 =================
+    private SleepGoal generateSleepGoal(SleepGoalSettingRequest request, Member member){
+
+        SleepGoal goal = SleepGoal.builder()
+                .sleepTime(request.sleepTime())
+                .wakeTime(request.wakeTime())
+                .currentStreak(0)
+                .bestStreak(0)
+                .nonSleepStreak(0)
+                .member(member)
+                .build();
+
+        sleepGoalRepository.save(goal);
+
+        return goal;
     }
 }

@@ -1,6 +1,7 @@
 package com.umc_9th.sleepinghero.domain.sleep.entity;
 
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
+import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepGoalSettingRequest;
 import com.umc_9th.sleepinghero.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,7 +9,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -52,6 +52,11 @@ public class SleepGoal extends BaseEntity {
     public void failGoal(){
         currentStreak = 0;
         nonSleepStreak++;
+    }
+
+    public void changeSleepTime(SleepGoalSettingRequest request){
+        sleepTime = request.sleepTime();
+        wakeTime = request.wakeTime();
     }
 
     public boolean evaluateGoal(SleepRecord record, LocalDateTime now) {

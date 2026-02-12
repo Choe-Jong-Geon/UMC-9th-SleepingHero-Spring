@@ -32,6 +32,9 @@ public class Hero extends BaseEntity {
     @Column(nullable = false, name = "current_stage")
     private int currentStage;
 
+    @Column(nullable = false, name = "debuff")
+    private boolean isDeBuff;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false, unique = true)
     private Member member;
@@ -46,6 +49,7 @@ public class Hero extends BaseEntity {
     public void updateSkin(Skin skin) {
         this.currentSkin = skin;
     }
+    public void changeDeBuff(boolean isDeBuff) {this.isDeBuff = isDeBuff;}
 
     public void gainExp(int gainedExp) {
 
