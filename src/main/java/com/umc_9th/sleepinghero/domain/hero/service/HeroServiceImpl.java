@@ -84,7 +84,7 @@ public class HeroServiceImpl implements HeroService {
                 .currentLevel(1)
                 .currentSkin(initialSkins.getFirst())
                 .currentExp(0)
-                .isDebuff(false)
+                .isDeBuff(false)
                 .currentStage(1)
                 .build();
 
