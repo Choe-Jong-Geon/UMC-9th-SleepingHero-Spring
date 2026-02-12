@@ -21,7 +21,7 @@ public interface GroupControllerDocs {
     ApiResponse<List<GroupRankResponse>> getGroupRankings();
 
     @Operation(summary = "그룹 초대  API", description = "특정 유저를 그룹에 초대합니다.")
-    ApiResponse<String> inviteToGroup(Long memberId, com.umc_9th.sleepinghero.domain.group.dto.req.GroupInvitationRequest request);
+    ApiResponse<String> inviteToGroup(Long memberId, GroupInvitationRequest request);
 
     @Operation(summary = "내가 받은 그룹 가입 요청 목록 조회 API", description = "나에게 온 그룹 초대/가입 요청 중 대기(PENDING) 상태인 목록을 조회합니다.")
     ApiResponse<List<GroupInvitationResponse>> getPendingRequests(@AuthenticationPrincipal Long memberId);
