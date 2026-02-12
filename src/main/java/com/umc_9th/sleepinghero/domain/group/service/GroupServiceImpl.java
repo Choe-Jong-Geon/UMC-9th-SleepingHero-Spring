@@ -211,4 +211,5 @@ public class GroupServiceImpl implements GroupService {
                     groupSleepAvgMap.getOrDefault(g1.getId(), 0.0));
         };
     }
+
 }

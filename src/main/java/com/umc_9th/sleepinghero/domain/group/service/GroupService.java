@@ -28,5 +28,4 @@ public interface GroupService {
 
     String deleteGroup(Long memberId, GroupDeleteRequest request);
 
-
 }
