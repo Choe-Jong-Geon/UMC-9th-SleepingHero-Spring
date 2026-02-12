@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "sleep_feedback")
+@Table(name = "sleep_feedbacks")
 public class SleepFeedBack extends BaseEntity {
 
     @Column(nullable = false)
