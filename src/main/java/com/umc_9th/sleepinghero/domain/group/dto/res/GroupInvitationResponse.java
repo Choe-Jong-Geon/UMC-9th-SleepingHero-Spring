@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GroupInvitaionRequest {
+public class GroupInvitationResponse {
     private String groupName;
 }
