@@ -14,6 +14,8 @@ public enum AuthErrorCode implements BaseErrorCode {
             "AUTH400_1", "OAuth accessToken이 필요합니다."),
     OAUTH_PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST,
             "AUTH400_2", "지원하지 않는 로그인 제공자입니다."),
+    OAUTH_REFRESH_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST,
+            "AUTH400_3", "RefreshToken이 필요합니다."),
 
     // 토큰 관련 에러 (401)
     OAUTH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED,
