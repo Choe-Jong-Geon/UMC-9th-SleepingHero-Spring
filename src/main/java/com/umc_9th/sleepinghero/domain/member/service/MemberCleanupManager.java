@@ -1,6 +1,6 @@
 package com.umc_9th.sleepinghero.domain.member.service;
 
-import com.umc_9th.sleepinghero.domain.auth.service.RefreshTokenService;
+import com.umc_9th.sleepinghero.domain.auth.service.RefreshTokenServiceImpl;
 import com.umc_9th.sleepinghero.domain.group.entity.Group;
 import com.umc_9th.sleepinghero.domain.group.repository.GroupMemberRepository;
 import com.umc_9th.sleepinghero.domain.group.repository.GroupRepository;
@@ -24,7 +24,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class MemberCleanupManager {
-    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenServiceImpl refreshTokenServiceImpl;
     private final GroupMemberRepository groupMemberRepository;
     private final GroupRepository groupRepository;
     private final SleepRecordRepository sleepRecordRepository;
@@ -40,7 +40,7 @@ public class MemberCleanupManager {
         Long memberId = member.getId();
         String nickname = member.getNickName();
 
-        refreshTokenService.delete(memberId);
+        refreshTokenServiceImpl.delete(memberId);
         handleGroupCleanup(member, nickname);
         handleSleepCleanup(member, memberId);
 
