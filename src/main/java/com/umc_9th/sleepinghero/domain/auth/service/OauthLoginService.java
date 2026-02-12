@@ -1,5 +1,6 @@
 package com.umc_9th.sleepinghero.domain.auth.service;
 import com.umc_9th.sleepinghero.domain.auth.client.OauthClient;
+import com.umc_9th.sleepinghero.domain.auth.converter.AuthConverter;
 import com.umc_9th.sleepinghero.domain.auth.dto.res.LoginResult;
 import com.umc_9th.sleepinghero.domain.auth.exception.code.AuthErrorCode;
 import com.umc_9th.sleepinghero.domain.auth.model.OauthProfile;
@@ -25,7 +26,8 @@ public class OauthLoginService {
 
     public OauthLoginService(
             MemberRepository memberRepository,
-            JwtTokenProvider jwtTokenProvider, RefreshTokenService refreshTokenService,
+            JwtTokenProvider jwtTokenProvider,
+            RefreshTokenService refreshTokenService,
             List<OauthClient> clients
     ) {
         this.memberRepository = memberRepository;
@@ -42,22 +44,15 @@ public class OauthLoginService {
         if (client == null) {
             throw new GeneralException(AuthErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED);
         }
-        if (oauthAccessToken == null) {
+        if (oauthAccessToken == null || oauthAccessToken.isBlank()) {
             throw new GeneralException(AuthErrorCode.OAUTH_ACCESS_TOKEN_REQUIRED);
         }
         OauthProfile profile = client.getProfile(oauthAccessToken);
 
         Member member = memberRepository
                 .findByProviderAndProviderId(provider, profile.providerId())
-                .orElseGet(() -> memberRepository.save(
-                        Member.builder()
-                                .provider(provider)
-                                .providerId(profile.providerId())
-                                .email(profile.email() == null ? "unknown@oauth" : profile.email())
-                                .nickName(profile.nickname() == null ? "유저" : profile.nickname())
-                                .profilePicture(profile.profileImage())
-                                .build()
-                ));
+                .orElseGet(() -> memberRepository.save(AuthConverter.toMember(provider, profile)));
+
         if (profile.nickname() != null
                 && (member.getNickName() == null
                 || member.getNickName().equals("유저"))) {
@@ -70,13 +65,13 @@ public class OauthLoginService {
 
         refreshTokenService.save(member.getId(), refreshJwt, jwtTokenProvider.refreshTtl());
 
-        return new LoginResult(member.getId(), member.getNickName(), accessJwt, refreshJwt);
+        return AuthConverter.toLoginResult(member, accessJwt, refreshJwt);
     }
 
     @Transactional(readOnly = true)
     public String reissueAccessToken(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new GeneralException(AuthErrorCode.OAUTH_ACCESS_TOKEN_REQUIRED);
+            throw new GeneralException(AuthErrorCode.OAUTH_REFRESH_TOKEN_REQUIRED);
         }
 
         if (!jwtTokenProvider.validate(refreshToken)) {
