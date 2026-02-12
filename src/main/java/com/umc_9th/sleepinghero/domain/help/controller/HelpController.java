@@ -14,12 +14,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/help")
-public class HelpController {
+public class HelpController implements HelpControllerDocs {
 
     private final HelpService helpService;
 
     @PostMapping("/inquiry")
-    @Operation(summary = "문의하기 등록 API", description = "버그 신고 및 불편 사항을 직접 입력받아 저장합니다.")
     public ApiResponse<String> createInquiry(
             @AuthenticationPrincipal Long memberId,
             @RequestBody @Valid HelpRequestDTO.CreateHelpDTO request

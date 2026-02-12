@@ -4,6 +4,7 @@ import com.umc_9th.sleepinghero.domain.hero.entity.Hero;
 import com.umc_9th.sleepinghero.domain.hero.exception.HeroErrorCode;
 import com.umc_9th.sleepinghero.domain.hero.repository.HeroRepository;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
+import com.umc_9th.sleepinghero.domain.skin.converter.SkinConverter;
 import com.umc_9th.sleepinghero.domain.skin.dto.res.SkinResponseDTO;
 import com.umc_9th.sleepinghero.domain.skin.entity.Skin;
 import com.umc_9th.sleepinghero.domain.skin.entity.SkinMember;
@@ -34,26 +35,10 @@ public class SkinServiceImpl implements SkinService {
         Hero hero = heroRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new GeneralException(HeroErrorCode.HERO_NOT_FOUND));
 
-        Long equippedSkinId = hero.getCurrentSkin().getId();
-
-
         List<SkinMember> mySkins = skinMemberRepository.findAllByMemberId(memberId);
 
+        return SkinConverter.toSkinListDTO(mySkins, hero.getCurrentSkin().getId());
 
-        List<SkinResponseDTO.SkinInfoDTO> skinInfoList = mySkins.stream()
-                .map(sm -> {
-                    Skin skin = sm.getSkin();
-                    return SkinResponseDTO.SkinInfoDTO.builder()
-                            .skinId(skin.getId())
-                            .name(skin.getName())
-                            .isEquipped(skin.getId().equals(equippedSkinId))
-                            .build();
-                })
-                .collect(Collectors.toList());
-
-        return SkinResponseDTO.SkinListDTO.builder()
-                .skins(skinInfoList)
-                .build();
     }
 
     @Override
