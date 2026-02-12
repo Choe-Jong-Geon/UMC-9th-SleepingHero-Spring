@@ -4,6 +4,7 @@ import com.umc_9th.sleepinghero.domain.auth.converter.AuthConverter;
 import com.umc_9th.sleepinghero.domain.auth.dto.res.LoginResult;
 import com.umc_9th.sleepinghero.domain.auth.exception.code.AuthErrorCode;
 import com.umc_9th.sleepinghero.domain.auth.model.OauthProfile;
+import com.umc_9th.sleepinghero.domain.auth.validator.AuthValidator;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.enums.OauthProvider;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
@@ -23,16 +24,19 @@ public class OauthLoginServiceImpl implements OauthLoginService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenServiceImpl refreshTokenServiceImpl;
     private final Map<OauthProvider, OauthClient> clientMap;
+    private final AuthValidator authValidator;
 
     public OauthLoginServiceImpl(
             MemberRepository memberRepository,
             JwtTokenProvider jwtTokenProvider,
             RefreshTokenServiceImpl refreshTokenServiceImpl,
-            List<OauthClient> clients
+            List<OauthClient> clients,
+            AuthValidator authValidator
     ) {
         this.memberRepository = memberRepository;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenServiceImpl = refreshTokenServiceImpl;
+        this.authValidator = authValidator;
 
         this.clientMap = clients.stream()
                 .collect(Collectors.toMap(OauthClient::provider, Function.identity()));
@@ -40,25 +44,18 @@ public class OauthLoginServiceImpl implements OauthLoginService {
 
     @Transactional
     public LoginResult login(OauthProvider provider, String oauthAccessToken) {
-        OauthClient client = clientMap.get(provider);
-        if (client == null) {
-            throw new GeneralException(AuthErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED);
-        }
-        if (oauthAccessToken == null || oauthAccessToken.isBlank()) {
-            throw new GeneralException(AuthErrorCode.OAUTH_ACCESS_TOKEN_REQUIRED);
-        }
+
+        OauthClient client = authValidator.getClientOrThrow(clientMap, provider);
+
+        authValidator.validateOauthAccessToken(oauthAccessToken);
+
         OauthProfile profile = client.getProfile(oauthAccessToken);
 
         Member member = memberRepository
                 .findByProviderAndProviderId(provider, profile.providerId())
                 .orElseGet(() -> memberRepository.save(AuthConverter.toMember(provider, profile)));
 
-        if (profile.nickname() != null
-                && (member.getNickName() == null
-                || member.getNickName().equals("유저"))) {
-
-            member.updateNickname(profile.nickname());
-        }
+        updateNicknameIfNeeded(member, profile);
 
         String accessJwt = jwtTokenProvider.createAccessToken(member.getId(), member.getRole());
         String refreshJwt = jwtTokenProvider.createRefreshToken(member.getId());
@@ -70,19 +67,12 @@ public class OauthLoginServiceImpl implements OauthLoginService {
 
     @Transactional(readOnly = true)
     public String reissueAccessToken(String refreshToken) {
-        if (refreshToken == null || refreshToken.isBlank()) {
-            throw new GeneralException(AuthErrorCode.OAUTH_REFRESH_TOKEN_REQUIRED);
-        }
-
-        if (!jwtTokenProvider.validate(refreshToken)) {
-            throw new GeneralException(AuthErrorCode.JWT_INVALID);
-        }
+        authValidator.validateRefreshTokenPresent(refreshToken);
+        authValidator.validateRefreshTokenJwt(refreshToken);
 
         Long memberId = jwtTokenProvider.getMemberId(refreshToken);
 
-        if (!refreshTokenServiceImpl.matches(memberId, refreshToken)) {
-            throw new GeneralException(AuthErrorCode.JWT_INVALID);
-        }
+        authValidator.validateRefreshTokenMatches(memberId, refreshToken);
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(AuthErrorCode.MEMBER_NOT_FOUND));
@@ -90,5 +80,11 @@ public class OauthLoginServiceImpl implements OauthLoginService {
         return jwtTokenProvider.createAccessToken(member.getId(), member.getRole());
     }
 
+    private void updateNicknameIfNeeded(Member member, OauthProfile profile) {
+        if (profile.nickname() == null || profile.nickname().isBlank()) return;
 
+        if (member.getNickName() == null || member.getNickName().equals("유저")) {
+            member.updateNickname(profile.nickname());
+        }
+    }
 }
