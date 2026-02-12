@@ -26,10 +26,10 @@ public enum SleepErrorCode implements BaseErrorCode {
             "SLEEP404_3",
             "해당 수면 피드백을 찾을 수 없습니다."),
     SLEEP_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT,
-            "SLEEP_409_1",
+            "SLEEP409_1",
                     "해당 사용자는 이미 수면 중 입니다."),
     SLEEP_FEEDBACK_ALREADY_EXISTS(HttpStatus.CONFLICT,
-            "SLEEP_409_1",
+            "SLEEP409_1",
             "해당 리뷰에 대한 피드백이 이미 존재합니다."),
 
     SLEEP_GOAL_NOT_FOUND(HttpStatus.NOT_FOUND,
@@ -40,7 +40,11 @@ public enum SleepErrorCode implements BaseErrorCode {
 
     SLEEP_SESSION_INCONSISTENT(HttpStatus.INTERNAL_SERVER_ERROR,
             "SLEEP500_1",
-            "수면 상태와 수면 기록이 일치하지 않습니다.");
+            "수면 상태와 수면 기록이 일치하지 않습니다."),
+    SLEEP_GOAL_INTEGRITY_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,
+            "SLEEP500_2",
+            "수면 목표 데이터 무결성이 깨졌습니다.");
+
 
 
 

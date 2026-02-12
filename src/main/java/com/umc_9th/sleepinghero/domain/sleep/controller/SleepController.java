@@ -95,7 +95,7 @@ public class SleepController implements SleepControllerDocs {
 
     @PutMapping("/goal")
     public ResponseEntity<ApiResponse<SleepGoalSettingResponse>> settingSleepGoal(
-            @RequestBody @Valid SleepGoalSettingRequest request,
+            @RequestBody SleepGoalSettingRequest request,
             @AuthenticationPrincipal Long memberId
     ){
         return ResponseEntity.ok(ApiResponse.onSuccess(

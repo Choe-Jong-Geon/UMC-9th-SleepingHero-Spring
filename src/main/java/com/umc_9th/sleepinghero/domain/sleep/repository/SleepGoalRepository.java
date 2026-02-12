@@ -12,4 +12,6 @@ public interface SleepGoalRepository extends JpaRepository<SleepGoal, Long> {
     boolean existsByMemberId(Long memberId);
 
     void deleteByMemberId(Long memberId);
+
+    long countByMemberId(Long memberId);
 }
