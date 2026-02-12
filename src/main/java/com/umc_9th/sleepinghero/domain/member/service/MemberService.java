@@ -77,13 +77,12 @@ public class MemberService {
         Member me = findMemberByIdOrThrow(memberId);
         Member sender = findMemberByNickNameOrThrow(senderNickName);
 
-        // 나(me)에게 온 요청(sender -> me)을 찾음
         Friend request = friendRepository.findByMemberAndFriendAndStatus(sender, me, Status.PENDING)
                 .orElseThrow(() -> new GeneralException(MemberErrorCode.INVALID_FRIEND_REQUEST));
 
-        if ("accept".equalsIgnoreCase(action)) {
+        if (action.equals("APPROVE")) {
             request.updateStatus(Status.APPROVE);
-            // 양방향 데이터 생성 (나 -> 상대방)
+
             friendRepository.save(Friend.builder()
                     .member(me)
                     .friend(sender)
@@ -101,8 +100,8 @@ public class MemberService {
     public List<FriendResponse> getFriendListByStatus(Long memberId, Status status) {
         Member me = findMemberByIdOrThrow(memberId);
 
-        return friendRepository.findAllByMemberAndStatus(me, status).stream()
-                .map(relation -> MemberConverter.toFriendResponse(relation.getFriend()))
+        return friendRepository.findAllByFriendAndStatus(me, status).stream()
+                .map(relation -> MemberConverter.toFriendResponse(relation.getMember()))
                 .collect(Collectors.toList());
     }
 
@@ -243,7 +242,7 @@ public class MemberService {
     }
 
     private Long calculateTotalSleepSeconds(Member member) {
-        return sleepRecordRepository.findAllByMemberAndSuccess(member, true).stream()
+        return sleepRecordRepository.findAllByMemberAndIsSuccess(member, true).stream()
                 .filter(sr -> sr.getSleptTime() != null && sr.getWokeTime() != null)
                 .mapToLong(sr -> Duration.between(sr.getSleptTime(), sr.getWokeTime()).getSeconds())
                 .sum();

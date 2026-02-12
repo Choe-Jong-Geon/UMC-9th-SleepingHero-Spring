@@ -12,10 +12,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static com.umc_9th.sleepinghero.domain.auth.converter.AuthConverter.toLoginResponse;
+import static com.umc_9th.sleepinghero.domain.auth.converter.AuthConverter.toTokenReissueResponse;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth/login")
-public class AuthController {
+public class AuthController implements  AuthControllerDocs {
 
     private final OauthLoginService oauthLoginService;
 
@@ -25,12 +28,7 @@ public class AuthController {
 
         return ResponseEntity.ok()
                 .header("X-REFRESH-TOKEN", result.refreshToken())
-                .body(ApiResponse.onSuccess(
-                        GeneralSuccessCode.OK,
-                        new LoginResponse(result.memberId(),
-                                result.nickName(),
-                                result.accessToken())
-                ));
+                .body(ApiResponse.onSuccess(GeneralSuccessCode.OK, toLoginResponse(result)));
     }
 
     @PostMapping("/kakao")
@@ -39,12 +37,7 @@ public class AuthController {
 
         return ResponseEntity.ok()
                 .header("X-REFRESH-TOKEN", result.refreshToken())
-                .body(ApiResponse.onSuccess(
-                        GeneralSuccessCode.OK,
-                        new LoginResponse(result.memberId(),
-                                result.nickName(),
-                                result.accessToken())
-                ));
+                .body(ApiResponse.onSuccess(GeneralSuccessCode.OK, toLoginResponse(result)));
     }
     @PostMapping("/reissue")
     public ResponseEntity<ApiResponse<TokenReissueResponse>> reissue(
@@ -52,8 +45,8 @@ public class AuthController {
     ) {
         String newAccessToken = oauthLoginService.reissueAccessToken(refreshToken);
 
-        return ResponseEntity.ok(
-                ApiResponse.onSuccess(GeneralSuccessCode.OK, new TokenReissueResponse(newAccessToken))
+        return  ResponseEntity.ok(
+                ApiResponse.onSuccess(GeneralSuccessCode.OK, toTokenReissueResponse(newAccessToken))
         );
     }
 }
