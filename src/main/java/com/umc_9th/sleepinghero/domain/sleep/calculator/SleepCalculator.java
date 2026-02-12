@@ -1,4 +1,4 @@
-package com.umc_9th.sleepinghero.domain.hero.calculator;
+package com.umc_9th.sleepinghero.domain.sleep.calculator;
 
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;

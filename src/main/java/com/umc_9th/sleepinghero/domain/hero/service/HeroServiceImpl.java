@@ -1,13 +1,12 @@
 package com.umc_9th.sleepinghero.domain.hero.service;
 
-import com.umc_9th.sleepinghero.domain.hero.calculator.SleepCalculator;
+import com.umc_9th.sleepinghero.domain.sleep.calculator.SleepCalculator;
 import com.umc_9th.sleepinghero.domain.hero.converter.HeroConverter;
 import com.umc_9th.sleepinghero.domain.hero.dto.req.HeroRequestDTO;
 import com.umc_9th.sleepinghero.domain.hero.dto.res.HeroResponseDTO;
 import com.umc_9th.sleepinghero.domain.hero.entity.Hero;
 import com.umc_9th.sleepinghero.domain.hero.exception.HeroErrorCode;
 import com.umc_9th.sleepinghero.domain.hero.repository.HeroRepository;
-import com.umc_9th.sleepinghero.domain.hero.util.LevelPolicy;
 import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
@@ -18,13 +17,11 @@ import com.umc_9th.sleepinghero.domain.skin.repository.SkinMemberRepository;
 import com.umc_9th.sleepinghero.domain.skin.repository.SkinRepository;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepGoal;
 import com.umc_9th.sleepinghero.domain.sleep.repository.SleepGoalRepository;
-import com.umc_9th.sleepinghero.domain.sleep.repository.SleepRecordRepository;
 import com.umc_9th.sleepinghero.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
