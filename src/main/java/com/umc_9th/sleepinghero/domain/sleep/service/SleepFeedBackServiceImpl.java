@@ -18,12 +18,12 @@ import com.umc_9th.sleepinghero.global.infra.openAi.prompt.SleepFeedbackUserProm
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class SleepFeedBackServiceImpl implements SleepFeedBackService {
 
     private final SleepFeedBackRepository sleepFeedBackRepository;
@@ -35,7 +35,7 @@ public class SleepFeedBackServiceImpl implements SleepFeedBackService {
     private final SleepFeedbackUserPrompt userPrompt;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AiSleepFeedBack feedback(
             long sleepDuration,
             long goalDuration,
@@ -126,26 +126,30 @@ public class SleepFeedBackServiceImpl implements SleepFeedBackService {
     // 폴백
 
     private AiSleepFeedBack fallBack(SleepReview review, Exception e){
-        log.warn("AI 응답 실패 → fallback 저장", e);
+        log.warn("AI 응답 실패 → fallback 반환", e);
 
-        AiSleepFeedBack fallback =
-                AiSleepFeedBack.fallBack();
-
-        saveFeedBack(fallback, review);
-
-        return fallback;
+        return AiSleepFeedBack.fallBack();
     }
+
 
 
     // 저장
 
     private void saveFeedBack(AiSleepFeedBack feedBack, SleepReview review) {
-        sleepFeedBackRepository.save(SleepFeedBack.builder()
+
+        SleepFeedBack entity = SleepFeedBack.builder()
                 .summary(feedBack.summary())
-                .positives(feedBack.positives())
-                .improvements(feedBack.improvements())
                 .cheering(feedBack.cheering())
                 .sleepReview(review)
-                .build());
+                .build();
+
+        feedBack.improvements()
+                .forEach(entity::addImprovement);
+
+        feedBack.positives()
+                .forEach(entity::addPositive);
+
+        sleepFeedBackRepository.save(entity);
     }
+
 }

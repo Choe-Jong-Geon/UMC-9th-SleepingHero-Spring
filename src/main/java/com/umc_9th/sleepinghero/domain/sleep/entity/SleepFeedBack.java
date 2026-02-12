@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,22 +21,6 @@ public class SleepFeedBack extends BaseEntity {
     @Column(nullable = false)
     private String summary;
 
-    @ElementCollection
-    @CollectionTable(
-            name = "sleep_feedback_positives",
-            joinColumns = @JoinColumn(name = "sleep_feedback_id")
-    )
-    @Column(nullable = false)
-    private List<String> positives;
-
-    @ElementCollection
-    @CollectionTable(
-            name = "sleep_feedback_improvements",
-            joinColumns = @JoinColumn(name = "sleep_feedback_id")
-    )
-    @Column(nullable = false)
-    private List<String> improvements;
-
     @Column(nullable = false)
     private String cheering;
 
@@ -43,4 +28,27 @@ public class SleepFeedBack extends BaseEntity {
     @JoinColumn(name = "sleep_review_id", nullable = false, unique = true)
     private SleepReview sleepReview;
 
+    @OneToMany(mappedBy = "sleepFeedBack",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    @Builder.Default
+    private List<SleepFeedbackImprovement> improvements = new ArrayList<>();
+
+    @OneToMany(mappedBy = "sleepFeedBack",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    @Builder.Default
+    private List<SleepFeedbackPositive> positives = new ArrayList<>();
+
+    public void addImprovement(String content) {
+        SleepFeedbackImprovement imp =
+                new SleepFeedbackImprovement(content, this);
+        improvements.add(imp);
+    }
+
+    public void addPositive(String content) {
+        SleepFeedbackPositive pos =
+                new SleepFeedbackPositive(content, this);
+        positives.add(pos);
+    }
 }
