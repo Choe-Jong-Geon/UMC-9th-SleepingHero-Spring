@@ -3,6 +3,7 @@ package com.umc_9th.sleepinghero.domain.group.service;
 import com.umc_9th.sleepinghero.domain.group.converter.GroupConverter;
 import com.umc_9th.sleepinghero.domain.group.dto.req.*;
 import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInsideRankingResponse;
+import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInvitaionRequest;
 import com.umc_9th.sleepinghero.domain.group.dto.res.GroupRankResponse;
 import com.umc_9th.sleepinghero.domain.group.dto.res.MemberRankingInfo;
 import com.umc_9th.sleepinghero.domain.group.entity.Group;
@@ -111,7 +112,19 @@ public class GroupService {
         validateInvitationEligibility(invitee, group);
 
         groupMemberRepository.save(GroupConverter.toGroupMember(invitee, group, GroupRole.USER, Status.PENDING));
-        return "그룹 초대/가입 요청이 완료되었습니다.";
+        return "그룹 초대가 완료되었습니다.";
+    }
+
+    @Transactional(readOnly = true)
+    public List<GroupInvitaionRequest> getPendingGroupRequests(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        return groupMemberRepository.findAllByMemberAndStatus(member, Status.PENDING).stream()
+                .map(groupMember -> GroupInvitaionRequest.builder()
+                        .groupName(groupMember.getHeroGroups().getName())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     // 5. 초대 승인/거절
@@ -120,15 +133,16 @@ public class GroupService {
         Group group = findGroupByNameOrThrow(groupName);
         GroupMember invitation = findPendingInvitationOrThrow(me, group);
 
-        if ("accept".equalsIgnoreCase(status)) {
+        if (status.equals("APPROVE")) {
             validateGroupCapacity(group);
             invitation.updateStatus(Status.APPROVE);
             group.incrementCurrentPeople();
             return "그룹 가입 요청을 수락하였습니다.";
-        }
-
+        } else if (status.equals("REJECTED")) {
         groupMemberRepository.delete(invitation);
         return "그룹 가입 요청을 거부하였습니다.";
+    }
+        return "APPROVE, REJECTED 중 하나를 정확하게 입력하여 주세요";
     }
 
     // 6. 탈퇴 및 추방
