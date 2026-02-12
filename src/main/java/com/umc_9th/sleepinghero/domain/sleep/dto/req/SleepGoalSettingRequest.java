@@ -1,11 +1,26 @@
 package com.umc_9th.sleepinghero.domain.sleep.dto.req;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalTime;
 
-public record   SleepGoalSettingRequest(
-        @JsonFormat(pattern = "HH:mm") LocalTime sleepTime,
-        @JsonFormat(pattern = "HH:mm") LocalTime wakeTime
-){
-}
+
+public record SleepGoalSettingRequest(
+
+        @Schema(
+                type = "string",
+                example = "23:00",
+                description = "취침 시간 (HH:mm 형식)"
+        )
+        @JsonFormat(pattern = "HH:mm")
+        LocalTime sleepTime,
+
+        @Schema(
+                type = "string",
+                example = "07:00",
+                description = "기상 시간 (HH:mm 형식)"
+        )
+        @JsonFormat(pattern = "HH:mm")
+        LocalTime wakeTime
+) {}
