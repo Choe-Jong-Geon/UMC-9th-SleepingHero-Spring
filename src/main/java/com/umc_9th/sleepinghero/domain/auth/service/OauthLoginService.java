@@ -14,5 +14,4 @@ public interface OauthLoginService {
 
     String reissueAccessToken(String refreshToken);
 
-
 }

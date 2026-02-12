@@ -32,4 +32,5 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     public boolean matches(Long memberId, String refreshToken) {
         return find(memberId).map(rt -> rt.equals(refreshToken)).orElse(false);
     }
+
 }
