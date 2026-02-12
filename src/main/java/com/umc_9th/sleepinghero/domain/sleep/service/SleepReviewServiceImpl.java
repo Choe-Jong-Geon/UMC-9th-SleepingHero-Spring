@@ -29,13 +29,89 @@ public class SleepReviewServiceImpl implements SleepReviewService {
     private final SleepFeedBackService sleepFeedBackService;
     private final SleepConverter sleepConverter;
 
+//    @Override
+//    @Transactional
+//    public SleepReviewResponse createReview(SleepReviewRequest request, Long memberId) {
+//
+//        SleepRecord record = sleepRecordRepository
+//                .findByIdAndMemberId(request.recordId(), memberId)
+//                .orElseThrow(() ->
+//                        new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND));
+//
+//        SleepGoal goal = sleepGoalRepository.findByMemberId(memberId)
+//                .orElseThrow(() ->
+//                        new GeneralException(SleepErrorCode.SLEEP_GOAL_NOT_FOUND));
+//
+//        SleepReview review = SleepReview.builder()
+//                .star(request.star())
+//                .comment(request.comment())
+//                .sleepRecord(record)
+//                .build();
+//
+//        sleepReviewRepository.save(review);
+//
+//        long sleepDuration =
+//                Duration.between(record.getSleptTime(), record.getWokeTime()).toMinutes();
+//
+//        long goalDuration =
+//                SleepTimeCalculator.durationMinutes(
+//                        goal.getSleepTime(),
+//                        goal.getWakeTime()
+//                );
+//
+//        AiSleepFeedBack feedBack =
+//                sleepFeedBackService.feedback(
+//                        sleepDuration,
+//                        goalDuration,
+//                        goal.getCurrentStreak(),
+//                        review
+//                );
+//
+//        return sleepConverter.toDto(review.getId(), feedBack);
+//    }
+
     @Override
+    public SleepReviewResponse createReview(
+            SleepReviewRequest request,
+            Long memberId
+    ) {
+
+        // 1️⃣ 리뷰 먼저 저장 (commit 발생)
+        SleepReview review = createReviewEntity(request, memberId);
+
+        SleepRecord record = review.getSleepRecord();
+        SleepGoal goal = sleepGoalRepository.findByMemberId(memberId)
+                .orElseThrow(() ->
+                        new GeneralException(SleepErrorCode.SLEEP_GOAL_NOT_FOUND));
+
+        long sleepDuration =
+                Duration.between(record.getSleptTime(), record.getWokeTime()).toMinutes();
+
+        long goalDuration =
+                SleepTimeCalculator.durationMinutes(
+                        goal.getSleepTime(),
+                        goal.getWakeTime()
+                );
+
+        // 2️⃣ AI 호출 (트랜잭션 없음)
+        AiSleepFeedBack feedBack =
+                sleepFeedBackService.feedback(
+                        sleepDuration,
+                        goalDuration,
+                        goal.getCurrentStreak(),
+                        review
+                );
+
+        return sleepConverter.toDto(review.getId(), feedBack);
+    }
+
+
     @Transactional
-    public SleepReviewResponse createReview(SleepReviewRequest request, Long memberId) {
+    public SleepReview createReviewEntity(SleepReviewRequest request, Long memberId) {
 
         SleepRecord record = sleepRecordRepository
                 .findByIdAndMemberId(request.recordId(), memberId)
-                .orElseThrow(() -> 
+                .orElseThrow(() ->
                         new GeneralException(SleepErrorCode.SLEEP_RECORD_NOT_FOUND));
 
         SleepGoal goal = sleepGoalRepository.findByMemberId(memberId)
@@ -48,25 +124,7 @@ public class SleepReviewServiceImpl implements SleepReviewService {
                 .sleepRecord(record)
                 .build();
 
-        sleepReviewRepository.save(review);
-
-        long sleepDuration =
-                Duration.between(record.getSleptTime(), record.getWokeTime()).toMinutes();
-
-        long goalDuration =
-                SleepTimeCalculator.durationMinutes(
-                        goal.getSleepTime(),
-                        goal.getWakeTime()
-                );
-
-        AiSleepFeedBack feedBack =
-                sleepFeedBackService.feedback(
-                        sleepDuration,
-                        goalDuration,
-                        goal.getCurrentStreak(),
-                        review
-                );
-
-        return sleepConverter.toDto(review.getId(), feedBack);
+        return sleepReviewRepository.save(review);
     }
+
 }
