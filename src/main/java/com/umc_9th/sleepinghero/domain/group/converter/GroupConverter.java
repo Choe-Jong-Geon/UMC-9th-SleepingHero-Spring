@@ -17,7 +17,7 @@ public class GroupConverter {
                 .groupImage(request.getGroupImageId())
                 .master(masterNickName)
                 .maxPeople(request.getMaxPeople() != null ? request.getMaxPeople() : 10)
-                .currentPeople(1)
+                .currentPeople(0)
                 .build();
     }
 
