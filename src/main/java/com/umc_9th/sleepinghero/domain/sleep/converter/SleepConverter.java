@@ -21,6 +21,17 @@ public class SleepConverter {
         );
     }
 
+    public SleepRecordResponse toDto(SleepRecord record, long minutes) {
+        return new SleepRecordResponse(
+                record.getId(),
+                0,
+                record.getSleptTime(),
+                record.getWokeTime(),
+                minutes,
+                null
+        );
+    }
+
     public SleepStartResponse toDto(SleepRecord sleepRecord, boolean sleepStatus) {
         return new SleepStartResponse(
                 sleepRecord.getId(),
