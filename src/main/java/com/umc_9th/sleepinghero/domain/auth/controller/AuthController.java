@@ -4,7 +4,7 @@ import com.umc_9th.sleepinghero.domain.auth.dto.req.OauthLoginRequest;
 import com.umc_9th.sleepinghero.domain.auth.dto.res.LoginResponse;
 import com.umc_9th.sleepinghero.domain.auth.dto.res.LoginResult;
 import com.umc_9th.sleepinghero.domain.auth.dto.res.TokenReissueResponse;
-import com.umc_9th.sleepinghero.domain.auth.service.OauthLoginService;
+import com.umc_9th.sleepinghero.domain.auth.service.OauthLoginServiceImpl;
 import com.umc_9th.sleepinghero.domain.member.enums.OauthProvider;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
@@ -20,11 +20,11 @@ import static com.umc_9th.sleepinghero.domain.auth.converter.AuthConverter.toTok
 @RequestMapping("/auth/login")
 public class AuthController implements  AuthControllerDocs {
 
-    private final OauthLoginService oauthLoginService;
+    private final OauthLoginServiceImpl oauthLoginServiceImpl;
 
     @PostMapping("/naver")
     public ResponseEntity<ApiResponse<LoginResponse>> loginNaver(@RequestBody OauthLoginRequest req) {
-        LoginResult result = oauthLoginService.login(OauthProvider.NAVER, req.accessToken());
+        LoginResult result = oauthLoginServiceImpl.login(OauthProvider.NAVER, req.accessToken());
 
         return ResponseEntity.ok()
                 .header("X-REFRESH-TOKEN", result.refreshToken())
@@ -33,7 +33,7 @@ public class AuthController implements  AuthControllerDocs {
 
     @PostMapping("/kakao")
     public ResponseEntity<ApiResponse<LoginResponse>> loginKakao(@RequestBody OauthLoginRequest req) {
-        LoginResult result = oauthLoginService.login(OauthProvider.KAKAO, req.accessToken());
+        LoginResult result = oauthLoginServiceImpl.login(OauthProvider.KAKAO, req.accessToken());
 
         return ResponseEntity.ok()
                 .header("X-REFRESH-TOKEN", result.refreshToken())
@@ -43,7 +43,7 @@ public class AuthController implements  AuthControllerDocs {
     public ResponseEntity<ApiResponse<TokenReissueResponse>> reissue(
             @RequestHeader("X-REFRESH-TOKEN") String refreshToken
     ) {
-        String newAccessToken = oauthLoginService.reissueAccessToken(refreshToken);
+        String newAccessToken = oauthLoginServiceImpl.reissueAccessToken(refreshToken);
 
         return  ResponseEntity.ok(
                 ApiResponse.onSuccess(GeneralSuccessCode.OK, toTokenReissueResponse(newAccessToken))

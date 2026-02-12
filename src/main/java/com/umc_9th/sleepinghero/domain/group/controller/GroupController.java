@@ -4,7 +4,7 @@ import com.umc_9th.sleepinghero.domain.group.dto.req.*;
 import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInsideRankingResponse;
 import com.umc_9th.sleepinghero.domain.group.dto.res.GroupInvitationResponse;
 import com.umc_9th.sleepinghero.domain.group.dto.res.GroupRankResponse;
-import com.umc_9th.sleepinghero.domain.group.service.GroupService;
+import com.umc_9th.sleepinghero.domain.group.service.GroupServiceImpl;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import com.umc_9th.sleepinghero.global.apiPayload.code.GeneralSuccessCode;
 import lombok.RequiredArgsConstructor;
@@ -18,20 +18,20 @@ import java.util.List;
 @RequestMapping("/groups")
 public class GroupController implements GroupControllerDocs {
 
-    private final GroupService groupService;
+    private final GroupServiceImpl groupServiceImpl;
 
     @PostMapping
     public ApiResponse<String> createGroup(
             @AuthenticationPrincipal Long memberId,
             @RequestBody GroupMakeRequestDto groupRequest) {
 
-        String result = groupService.createGroup(memberId, groupRequest);
+        String result = groupServiceImpl.createGroup(memberId, groupRequest);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
     @GetMapping("/rankings")
     public ApiResponse<List<GroupRankResponse>> getGroupRankings() {
-        List<GroupRankResponse> result = groupService.getGroupRanking();
+        List<GroupRankResponse> result = groupServiceImpl.getGroupRanking();
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
@@ -40,14 +40,14 @@ public class GroupController implements GroupControllerDocs {
             @AuthenticationPrincipal Long memberId,
             @RequestBody GroupInvitationRequest request) {
 
-        String result = groupService.inviteMember(memberId, request);
+        String result = groupServiceImpl.inviteMember(memberId, request);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
     @GetMapping("/requests/pending")
     public ApiResponse<List<GroupInvitationResponse>> getPendingRequests(
             @AuthenticationPrincipal Long memberId) {
-        return ApiResponse.onSuccess(GeneralSuccessCode.OK, groupService.getPendingGroupRequests(memberId));
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, groupServiceImpl.getPendingGroupRequests(memberId));
     }
 
     @PatchMapping("/requests/{status}")
@@ -56,7 +56,7 @@ public class GroupController implements GroupControllerDocs {
             @PathVariable String status,
             @RequestBody GroupRequestAccept request) {
 
-        String result = groupService.processGroupInvitation(memberId, request.getGroupName(), status);
+        String result = groupServiceImpl.processGroupInvitation(memberId, request.getGroupName(), status);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
@@ -65,7 +65,7 @@ public class GroupController implements GroupControllerDocs {
             @AuthenticationPrincipal Long memberId,
             @RequestBody GroupExitRequest request) {
 
-        String result = groupService.exitOrKickGroup(memberId, request);
+        String result = groupServiceImpl.exitOrKickGroup(memberId, request);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
@@ -74,7 +74,7 @@ public class GroupController implements GroupControllerDocs {
             @AuthenticationPrincipal Long memberId,
             @RequestBody GroupDeleteRequest request) {
 
-        String result = groupService.deleteGroup(memberId, request);
+        String result = groupServiceImpl.deleteGroup(memberId, request);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
@@ -82,7 +82,7 @@ public class GroupController implements GroupControllerDocs {
     public ApiResponse<GroupInsideRankingResponse> getGroupInsideRanking(
             @RequestParam String groupName) {
 
-        GroupInsideRankingResponse result = groupService.getGroupInsideRanking(groupName);
+        GroupInsideRankingResponse result = groupServiceImpl.getGroupInsideRanking(groupName);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 
