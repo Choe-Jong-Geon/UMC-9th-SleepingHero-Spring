@@ -14,12 +14,10 @@ public class SleepConverter {
         return new SleepRecordResponse(
             record.getId(),
                 review.getStar(),
-                record.getSleptTime().toLocalDate(),
+                record.getSleptTime(),
+                record.getWokeTime(),
                 minutes,
-                feedBack.getSummary(),
-                feedBack.getPositives(),
-                feedBack.getImprovements(),
-                feedBack.getCheering()
+                feedBack.getSummary()
         );
     }
 
