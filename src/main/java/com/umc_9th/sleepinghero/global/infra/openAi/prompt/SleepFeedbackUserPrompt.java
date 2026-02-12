@@ -8,14 +8,20 @@ public class SleepFeedbackUserPrompt {
 
     public String build(AiSleepFeedBackContext req) {
         return """
-        SLEEP DATA:
-        - Total sleep: %d minutes
-        - Goal: %d minutes
-        - Streak: %d days
-        - Star: %d
+        다음은 한 용사의 최근 휴식 기록이다.
+        이 정보를 바탕으로 용사의 상태를 평가하라.
 
-        USER REVIEW:
-        %s
+        [용사의 휴식 현황]
+        - 총 수면 시간: %d분
+        - 목표 수면 시간: %d분
+        - 연속 수면 달성일: %d일
+        - 자기 평가 별점: %d점
+
+        [용사의 한마디]
+        "%s"
+
+        위 정보를 기반으로
+        판타지 세계관의 스승처럼 용사에게 조언하라.
         """.formatted(
                 req.sleepDuration(),
                 req.goalDuration(),
