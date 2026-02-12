@@ -1,5 +1,7 @@
 package com.umc_9th.sleepinghero.domain.hero.service;
 
+import com.umc_9th.sleepinghero.domain.hero.calculator.SleepCalculator;
+import com.umc_9th.sleepinghero.domain.hero.converter.HeroConverter;
 import com.umc_9th.sleepinghero.domain.hero.dto.req.HeroRequestDTO;
 import com.umc_9th.sleepinghero.domain.hero.dto.res.HeroResponseDTO;
 import com.umc_9th.sleepinghero.domain.hero.entity.Hero;
@@ -35,8 +37,8 @@ public class HeroServiceImpl implements HeroService {
     private final SkinRepository skinRepository;
     private final MemberRepository memberRepository;
     private final SleepGoalRepository sleepGoalRepository;
-    private final SleepRecordRepository sleepRecordRepository;
     private final SkinMemberRepository skinMemberRepository;
+    private final SleepCalculator sleepCalculator;
 
 
     @Override
@@ -46,14 +48,7 @@ public class HeroServiceImpl implements HeroService {
                 .orElseThrow(() -> new GeneralException(HeroErrorCode.HERO_NOT_FOUND));
 
 
-        return HeroResponseDTO.HeroDetailDTO.builder()
-                .heroId(hero.getId())
-                .name(hero.getName())
-                .currentLevel(hero.getCurrentLevel())
-                .currentExp(hero.getCurrentExp())
-                .needExp(LevelPolicy.needExp(hero.getCurrentLevel()))
-                .currentStage(hero.getCurrentStage())
-                .build();
+        return HeroConverter.toHeroDetailDTO(hero);
     }
 
 
@@ -98,7 +93,7 @@ public class HeroServiceImpl implements HeroService {
         member.updateNickname(finalName);
 
         Hero savedHero = heroRepository.save(newHero);
-        return HeroResponseDTO.toDetailDTO(savedHero);
+        return HeroConverter.toHeroDetailDTO(savedHero);
     }
 
     @Override
@@ -120,7 +115,7 @@ public class HeroServiceImpl implements HeroService {
 
         member.updateNickname(request.getName());
 
-        return HeroResponseDTO.toDetailDTO(hero);
+        return HeroConverter.toHeroDetailDTO(hero);
     }
 
     @Override
@@ -134,18 +129,11 @@ public class HeroServiceImpl implements HeroService {
                 .map(SleepGoal::getCurrentStreak)
                 .orElse(0);
 
-        long totalSeconds = calculateTotalSleepSeconds(member);
-        int totalHours = (int) (totalSeconds / 3600);
+        long totalSeconds = sleepCalculator.calculateTotalSleepSeconds(member);
+        int totalHours = sleepCalculator.toHours(totalSeconds);
 
-        return HeroResponseDTO.SearchHeroResultDTO.builder()
-                .memberId(member.getId())
-                .heroId(hero.getId())
-                .heroName(hero.getName())
-                .level(hero.getCurrentLevel())
-                .skinId(hero.getCurrentSkin().getId())
-                .continuousSleepDays(streak)
-                .totalSleepHour(totalHours)
-                .build();
+        return HeroConverter.toSearchHeroResultDTO(hero, streak, totalHours);
+
     }
 
     @Override
@@ -168,9 +156,6 @@ public class HeroServiceImpl implements HeroService {
         }
     }
 
-
-
-
     private String generateUniqueDefaultName() {
         String baseName = "김용사";
         String uniqueName;
@@ -182,15 +167,4 @@ public class HeroServiceImpl implements HeroService {
 
         return uniqueName;
     }
-
-
-    // ------------------------------ 계산 로직 ------------------------------
-
-    private Long calculateTotalSleepSeconds(Member member) {
-        return sleepRecordRepository.findAllByMemberAndIsSuccess(member, true).stream()
-                .filter(sr -> sr.getSleptTime() != null && sr.getWokeTime() != null)
-                .mapToLong(sr -> Duration.between(sr.getSleptTime(), sr.getWokeTime()).getSeconds())
-                .sum();
-    }
-
 }

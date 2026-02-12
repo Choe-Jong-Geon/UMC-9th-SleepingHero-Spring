@@ -35,19 +35,4 @@ public class HeroResponseDTO {
         private int continuousSleepDays;
         private int totalSleepHour;
     }
-
-
-    public static HeroDetailDTO toDetailDTO(Hero hero) {
-        return HeroDetailDTO.builder()
-                .heroId(hero.getId())
-                .name(hero.getName())
-                .currentLevel(hero.getCurrentStage())
-                .currentExp(hero.getCurrentExp())
-                .needExp(LevelPolicy.needExp(hero.getCurrentLevel()))
-                .currentStage(hero.getCurrentStage())
-                .build();
-    }
-
-
-
 }
