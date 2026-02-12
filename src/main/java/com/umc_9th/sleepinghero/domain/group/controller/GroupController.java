@@ -38,7 +38,7 @@ public class GroupController implements GroupControllerDocs {
     @PostMapping("/invitations")
     public ApiResponse<String> inviteToGroup(
             @AuthenticationPrincipal Long memberId,
-            @RequestBody com.umc_9th.sleepinghero.domain.group.dto.req.GroupInvitationRequest request) {
+            @RequestBody GroupInvitationRequest request) {
 
         String result = groupService.inviteMember(memberId, request);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
