@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -246,9 +247,8 @@ public class SleepServiceImpl implements SleepService {
                         new GeneralException(HeroErrorCode.HERO_NOT_FOUND));
     }
 
-    private SleepReview getOrThrowReview(Long sleepRecordId) {
-                return sleepReviewRepository.findBySleepRecordId(sleepRecordId)
-                        .orElseThrow(() -> new GeneralException(SleepErrorCode.SLEEP_REVIEW_NOT_FOUND));
+    private Optional<SleepReview> getOrThrowReview(Long sleepRecordId) {
+                return sleepReviewRepository.findBySleepRecordId(sleepRecordId);
     }
 
     private SleepFeedBack getOrThrowFeedback(Long sleepReviewId) {
@@ -299,13 +299,20 @@ public class SleepServiceImpl implements SleepService {
     // ================= 값 변환 및 생성 =================
     private SleepRecordResponse convertToResponse(SleepRecord record) {
 
-        SleepReview review = getOrThrowReview(record.getId());
-        SleepFeedBack feedBack = getOrThrowFeedback(review.getId());
+        Optional<SleepReview> review = getOrThrowReview(record.getId());
+
         long minutes = SleepTimeCalculator.durationMinutes(
                 record.getSleptTime().toLocalTime(),record.getWokeTime().toLocalTime()
         );
 
-        return sleepConverter.toDto(record, feedBack, review, minutes);
+        if (review.isPresent()) {
+            SleepReview  sleepReview = review.get();
+            SleepFeedBack feedBack = getOrThrowFeedback(sleepReview.getId());
+
+            return sleepConverter.toDto(record, feedBack, sleepReview, minutes);
+        }
+        return sleepConverter.toDto(record, minutes);
+
     }
 
 
