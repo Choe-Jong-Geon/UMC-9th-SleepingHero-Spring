@@ -122,6 +122,7 @@ public class MemberServiceImpl implements MemberService {
     private Member findMemberByNickNameOrThrow(String nickname) {
         return memberRepository.findByNickName(nickname).orElseThrow(() -> new GeneralException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
+
 }
 
 

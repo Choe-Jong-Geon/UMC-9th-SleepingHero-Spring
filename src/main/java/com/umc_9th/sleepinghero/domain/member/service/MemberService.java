@@ -27,6 +27,4 @@ public interface MemberService {
     MemberResponse.CompleteTutorialResultDTO completeTutorial(Long memberId, MemberRequestDTO.CompleteTutorialDTO request);
 
 
-
-
 }
