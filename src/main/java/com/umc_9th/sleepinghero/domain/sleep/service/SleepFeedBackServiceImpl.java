@@ -35,6 +35,7 @@ public class SleepFeedBackServiceImpl implements SleepFeedBackService {
     private final SleepFeedbackUserPrompt userPrompt;
 
     @Override
+    @Transactional
     public AiSleepFeedBack feedback(
             long sleepDuration,
             long goalDuration,
@@ -139,12 +140,12 @@ public class SleepFeedBackServiceImpl implements SleepFeedBackService {
     // 저장
 
     private void saveFeedBack(AiSleepFeedBack feedBack, SleepReview review) {
-        SleepFeedBack.builder()
+        sleepFeedBackRepository.save(SleepFeedBack.builder()
                 .summary(feedBack.summary())
                 .positives(feedBack.positives())
                 .improvements(feedBack.improvements())
                 .cheering(feedBack.cheering())
                 .sleepReview(review)
-                .build();
+                .build());
     }
 }
