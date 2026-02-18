@@ -108,6 +108,7 @@ public class MemberServiceImpl implements MemberService {
         return MemberResponse.CheckTutorialDTO.builder().finished(member.isTutorialClear()).build();
     }
 
+    @Transactional(readOnly = true)
     public MemberResponse.CompleteTutorialResultDTO completeTutorial(Long memberId, MemberRequestDTO.CompleteTutorialDTO request) {
         Member member = findMemberByIdOrThrow(memberId);
         member.setTutorialClear(request.isFinished());
