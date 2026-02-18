@@ -30,12 +30,13 @@ public class SleepFeedBackServiceImpl implements SleepFeedBackService {
 
     private final ObjectMapper objectMapper;
 
+    private final SleepFeedBackSaver sleepFeedBackSaver;
+
     private final OpenAiClient client;
     private final SleepFeedbackSystemPrompt systemPrompt;
     private final SleepFeedbackUserPrompt userPrompt;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AiSleepFeedBack feedback(
             long sleepDuration,
             long goalDuration,
@@ -53,7 +54,7 @@ public class SleepFeedBackServiceImpl implements SleepFeedBackService {
             return generateSleepFeedBack(openAiRequest, review);
 
         } catch (Exception e) {
-            return fallBack(review, e);
+            return fallBack(e);
         }
     }
 
@@ -78,7 +79,6 @@ public class SleepFeedBackServiceImpl implements SleepFeedBackService {
 
 
     // 검증
-
     private void validateSleepFeedBack(SleepReview review){
         if (sleepFeedBackRepository.existsBySleepReview(review)) {
             throw new GeneralException(SleepErrorCode.SLEEP_FEEDBACK_ALREADY_EXISTS);
@@ -117,7 +117,7 @@ public class SleepFeedBackServiceImpl implements SleepFeedBackService {
 
         AiSleepFeedBack feedBack = parseResponse(aiResponse.getContent());
 
-        saveFeedBack(feedBack, review);
+        sleepFeedBackSaver.save(feedBack, review);
 
         return feedBack;
     }
@@ -125,31 +125,9 @@ public class SleepFeedBackServiceImpl implements SleepFeedBackService {
 
     // 폴백
 
-    private AiSleepFeedBack fallBack(SleepReview review, Exception e){
+    private AiSleepFeedBack fallBack(Exception e){
         log.warn("AI 응답 실패 → fallback 반환", e);
 
         return AiSleepFeedBack.fallBack();
     }
-
-
-
-    // 저장
-
-    private void saveFeedBack(AiSleepFeedBack feedBack, SleepReview review) {
-
-        SleepFeedBack entity = SleepFeedBack.builder()
-                .summary(feedBack.summary())
-                .cheering(feedBack.cheering())
-                .sleepReview(review)
-                .build();
-
-        feedBack.improvements()
-                .forEach(entity::addImprovement);
-
-        feedBack.positives()
-                .forEach(entity::addPositive);
-
-        sleepFeedBackRepository.save(entity);
-    }
-
 }
