@@ -17,8 +17,8 @@ public interface GroupControllerDocs {
     @Operation(summary = "그룹 생성 API", description = "새로운 히어로 그룹을 생성합니다.")
     ApiResponse<String> createGroup(Long memberId, GroupMakeRequestDto groupRequest);
 
-    @Operation(summary = "전체 그룹 랭킹 조회 API", description = "모든 그룹의 평균 수면 시간 및 인원수를 기준으로 랭킹을 조회합니다.")
-    ApiResponse<List<GroupRankResponse>> getGroupRankings();
+    @Operation(summary = "전체 그룹 랭킹 조회 API", description = "본인이 소속된 모든 그룹의 평균 수면 시간 및 인원수를 기준으로 랭킹을 조회합니다.")
+    ApiResponse<List<GroupRankResponse>> getGroupRankings(@AuthenticationPrincipal Long memberId);
 
     @Operation(summary = "그룹 초대  API", description = "특정 유저를 그룹에 초대합니다.")
     ApiResponse<String> inviteToGroup(Long memberId, GroupInvitationRequest request);

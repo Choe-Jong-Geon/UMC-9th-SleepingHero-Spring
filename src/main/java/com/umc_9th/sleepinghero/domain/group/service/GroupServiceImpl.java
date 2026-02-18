@@ -59,8 +59,15 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Transactional(readOnly = true)
-    public List<GroupRankResponse> getGroupRanking() {
-        List<Group> groups = groupRepository.findAll();
+    public List<GroupRankResponse> getGroupRanking(Long memberId) {
+        Member me = findMemberByIdOrThrow(memberId);
+
+        List<GroupMember> myGroupRelations = groupMemberRepository.findAllByMemberAndStatus(me, Status.APPROVE);
+
+        List<Group> groups = myGroupRelations.stream()
+                .map(GroupMember::getHeroGroups)
+                .toList();
+
         Map<Long, Double> groupSleepAvgMap = groups.stream()
                 .collect(Collectors.toMap(Group::getId, g -> groupCalculator.calculateGroupSleepAverage(g.getId())));
 

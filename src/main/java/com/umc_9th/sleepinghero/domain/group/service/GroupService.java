@@ -14,7 +14,7 @@ public interface GroupService {
 
     String createGroup(Long memberId, GroupMakeRequestDto request);
 
-    List<GroupRankResponse> getGroupRanking();
+    List<GroupRankResponse> getGroupRanking(Long memberId);
 
     GroupInsideRankingResponse getGroupInsideRanking(String groupName);
 

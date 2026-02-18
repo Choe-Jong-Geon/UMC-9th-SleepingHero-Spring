@@ -30,8 +30,10 @@ public class GroupController implements GroupControllerDocs {
     }
 
     @GetMapping("/rankings")
-    public ApiResponse<List<GroupRankResponse>> getGroupRankings() {
-        List<GroupRankResponse> result = groupServiceImpl.getGroupRanking();
+    public ApiResponse<List<GroupRankResponse>> getGroupRankings(
+            @AuthenticationPrincipal Long memberId
+    ) {
+        List<GroupRankResponse> result = groupServiceImpl.getGroupRanking(memberId);
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, result);
     }
 

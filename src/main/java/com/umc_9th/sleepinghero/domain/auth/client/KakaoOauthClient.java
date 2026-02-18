@@ -36,8 +36,7 @@ public class KakaoOauthClient extends AbstractOauthClient implements OauthClient
                 providerId,
                 email,
                 nickname,
-                profileImage
-        );
+                profileImage);
     }
 
     @Override
