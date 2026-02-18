@@ -35,7 +35,6 @@ public class SleepReviewServiceImpl implements SleepReviewService {
             Long memberId
     ) {
 
-        // 1️⃣ 리뷰 먼저 저장 (commit 발생)
         SleepReview review = createReviewEntity(request, memberId);
 
         SleepRecord record = review.getSleepRecord();
@@ -52,7 +51,6 @@ public class SleepReviewServiceImpl implements SleepReviewService {
                         goal.getWakeTime()
                 );
 
-        // 2️⃣ AI 호출 (트랜잭션 없음)
         AiSleepFeedBack feedBack =
                 sleepFeedBackService.feedback(
                         sleepDuration,

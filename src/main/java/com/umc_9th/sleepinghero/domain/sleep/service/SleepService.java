@@ -1,6 +1,6 @@
 package com.umc_9th.sleepinghero.domain.sleep.service;
 
-import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepGoalSettingRequest;
+import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepGoalRequest;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
 import org.springframework.data.domain.Page;
 
@@ -17,5 +17,6 @@ public interface SleepService {
 //    SleepReviewResponse createReview(SleepReviewRequest request, Long memberId);
     long testRecord(Long memberId);
 
-    SleepGoalSettingResponse settingSleep(SleepGoalSettingRequest request, Long memberId);
+    SleepGoalResponse settingSleep(SleepGoalRequest request, Long memberId);
+    SleepGoalResponse createSleep(SleepGoalRequest request, Long memberId);
 }

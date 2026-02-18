@@ -10,7 +10,7 @@ import com.umc_9th.sleepinghero.domain.member.entity.Member;
 import com.umc_9th.sleepinghero.domain.member.exception.MemberErrorCode;
 import com.umc_9th.sleepinghero.domain.member.repository.MemberRepository;
 import com.umc_9th.sleepinghero.domain.sleep.converter.SleepConverter;
-import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepGoalSettingRequest;
+import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepGoalRequest;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepFeedBack;
 import com.umc_9th.sleepinghero.domain.sleep.entity.SleepGoal;
@@ -74,8 +74,8 @@ public class SleepServiceImpl implements SleepService {
         return convertToResponse(record);
     }
 
-    // ================= 수면 시작 =================
 
+    // ================= 수면 시작 =================
     @Override
     @Transactional
     public SleepStartResponse startSleep(Long memberId) {
@@ -101,8 +101,8 @@ public class SleepServiceImpl implements SleepService {
         return sleepConverter.toDto(record, member.isSleepStatus());
     }
 
-    // ================= 수면 종료 =================
 
+    // ================= 수면 종료 =================
     @Override
     @Transactional
     public SleepEndResponse endSleep(Long memberId) {
@@ -143,6 +143,49 @@ public class SleepServiceImpl implements SleepService {
     }
 
     @Override
+    @Transactional
+    public SleepGoalResponse settingSleep(SleepGoalRequest request, Long memberId) {
+
+        validateMember(memberId);
+
+        System.out.println(memberId);
+
+        SleepGoal goal = getOrThrowGoal(memberId);
+            goal.changeSleepTime(request);
+
+        return new SleepGoalResponse(
+                goal.getSleepTime(),
+                goal.getWakeTime(),
+                SleepTimeCalculator.durationMinutes(goal.getSleepTime(),goal.getWakeTime())
+        );
+    }
+
+    @Override
+    public SleepGoalResponse createSleep(SleepGoalRequest request, Long memberId) {
+
+        Member member = getOrThrowMember(memberId);
+
+        validateSleepGoal(memberId);
+
+        SleepGoal goal = SleepGoal.builder()
+                .sleepTime(request.sleepTime())
+                .wakeTime(request.wakeTime())
+                .nonSleepStreak(0)
+                .currentStreak(0)
+                .bestStreak(0)
+                .member(member)
+                .build();
+
+        sleepGoalRepository.save(goal);
+
+        return new SleepGoalResponse(
+                goal.getSleepTime(),
+                goal.getWakeTime(),
+                SleepTimeCalculator.durationMinutes(goal.getSleepTime(),goal.getWakeTime())
+        );
+    }
+
+    @Override
     public long testRecord(Long memberId) {
 
         Member member = getOrThrowMember(memberId);
@@ -170,27 +213,6 @@ public class SleepServiceImpl implements SleepService {
 
     }
 
-
-    @Override
-    @Transactional
-    public SleepGoalSettingResponse settingSleep(SleepGoalSettingRequest request, Long memberId) {
-
-        Member member = getOrThrowMember(memberId);
-
-        SleepGoal goal;
-        if (!validateSleepGoal(memberId)){
-            goal = generateSleepGoal(request, member);
-        }else {
-            goal = getOrThrowGoal(memberId);
-            goal.changeSleepTime(request);
-        }
-
-        return new SleepGoalSettingResponse(
-                goal.getSleepTime(),
-                goal.getWakeTime(),
-                SleepTimeCalculator.durationMinutes(goal.getSleepTime(),goal.getWakeTime())
-        );
-    }
 
     // ================= 레벨 처리 =================
     private LevelChange updateLevel(Hero hero, int gainedExp) {
@@ -262,16 +284,10 @@ public class SleepServiceImpl implements SleepService {
         }
     }
 
-    private boolean validateSleepGoal(Long memberId) {
-
-        long count = sleepGoalRepository.countByMemberId(memberId);
-
-        if (count > 1)
-            throw new GeneralException(SleepErrorCode.SLEEP_GOAL_INTEGRITY_ERROR);
-
-        return count == 1;
+    private void validateSleepGoal(Long memberId) {
+        if (sleepGoalRepository.existsByMemberId(memberId))
+            throw new GeneralException(SleepErrorCode.SLEEP_GOAL_ALREADY_EXISTS);
     }
-
 
     private void validateSleepStatus(Member member) {
         if (member.isSleepStatus()) {
@@ -317,7 +333,7 @@ public class SleepServiceImpl implements SleepService {
 
 
     // ================= 생성 =================
-    private SleepGoal generateSleepGoal(SleepGoalSettingRequest request, Member member){
+    private SleepGoal generateSleepGoal(SleepGoalRequest request, Member member){
 
         SleepGoal goal = SleepGoal.builder()
                 .sleepTime(request.sleepTime())
