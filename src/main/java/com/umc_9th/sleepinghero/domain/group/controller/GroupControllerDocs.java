@@ -37,4 +37,5 @@ public interface GroupControllerDocs {
 
     @Operation(summary = "그룹 내부 멤버 랭킹 조회 API", description = "특정 그룹 내 멤버들의 수면 시간, 연속 일수, 레벨을 기준으로 랭킹을 조회합니다.")
     ApiResponse<GroupInsideRankingResponse> getGroupInsideRanking(String groupName);
+
 }
