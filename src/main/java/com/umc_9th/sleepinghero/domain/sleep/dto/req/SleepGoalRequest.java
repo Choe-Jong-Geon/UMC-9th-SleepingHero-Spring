@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalTime;
 
 
-public record SleepGoalSettingRequest(
+public record SleepGoalRequest(
 
         @Schema(
                 type = "string",

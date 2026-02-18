@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalTime;
 
-public record SleepGoalSettingResponse(
+public record SleepGoalResponse(
 
         @Schema(type = "string", example = "23:00", description = "설정된 취침 시간")
         @JsonFormat(pattern = "HH:mm")

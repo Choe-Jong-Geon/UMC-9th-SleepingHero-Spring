@@ -1,7 +1,7 @@
 package com.umc_9th.sleepinghero.domain.sleep.controller;
 
 import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
-import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepGoalSettingRequest;
+import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepGoalRequest;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
 import com.umc_9th.sleepinghero.domain.sleep.service.SleepReviewService;
 import com.umc_9th.sleepinghero.domain.sleep.service.SleepService;
@@ -92,14 +92,23 @@ public class SleepController implements SleepControllerDocs {
         ));
     }
 
-
-    @PutMapping("/goal")
-    public ResponseEntity<ApiResponse<SleepGoalSettingResponse>> settingSleepGoal(
-            @RequestBody SleepGoalSettingRequest request,
+    @PostMapping("/goal")
+    public ResponseEntity<ApiResponse<SleepGoalResponse>> createSleepGoal(
+            @RequestBody SleepGoalRequest request,
             @AuthenticationPrincipal Long memberId
     ){
         return ResponseEntity.ok(ApiResponse.onSuccess(
-                GeneralSuccessCode.CREATED,sleepService.settingSleep(request, memberId)
+                GeneralSuccessCode.CREATED,sleepService.createSleep(request, memberId)
+        ));
+    }
+
+    @PutMapping("/goal")
+    public ResponseEntity<ApiResponse<SleepGoalResponse>> settingSleepGoal(
+            @RequestBody SleepGoalRequest request,
+            @AuthenticationPrincipal Long memberId
+    ){
+        return ResponseEntity.ok(ApiResponse.onSuccess(
+                GeneralSuccessCode.OK,sleepService.settingSleep(request, memberId)
         ));
     }
 }

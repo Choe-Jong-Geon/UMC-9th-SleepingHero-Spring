@@ -1,7 +1,7 @@
 package com.umc_9th.sleepinghero.domain.sleep.controller;
 
 import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepReviewRequest;
-import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepGoalSettingRequest;
+import com.umc_9th.sleepinghero.domain.sleep.dto.req.SleepGoalRequest;
 import com.umc_9th.sleepinghero.domain.sleep.dto.res.*;
 import com.umc_9th.sleepinghero.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,16 +49,26 @@ public interface SleepControllerDocs {
             summary = "수면 리뷰 작성",
             description = "수면 세션 종료 후 별점과 코멘트를 작성하고, AI 기반 수면 피드백을 생성합니다."
     )
-    public ResponseEntity<ApiResponse<SleepReviewResponse>> createReview(
-            SleepReviewRequest request, Long memberId
+    ResponseEntity<ApiResponse<SleepReviewResponse>> createReview(
+            SleepReviewRequest request,
+            Long memberId
     );
 
     @Operation(
-            summary = "목표 수면 시간 설정",
-            description = "사용자가 원하는 수면 시간을 설정합니다."
+            summary = "목표 수면 시간 생성",
+            description = "사용자가 원하는 수면 시간을 생성합니다."
     )
-    ResponseEntity<ApiResponse<SleepGoalSettingResponse>> settingSleepGoal(
-            SleepGoalSettingRequest request,
+    ResponseEntity<ApiResponse<SleepGoalResponse>> createSleepGoal(
+            SleepGoalRequest request,
+            Long memberId
+    );
+
+    @Operation(
+            summary = "목표 수면 시간 수정",
+            description = "사용자가 원하는 수면 시간을 수정합니다."
+    )
+    ResponseEntity<ApiResponse<SleepGoalResponse>> settingSleepGoal(
+            SleepGoalRequest request,
             Long memberId
     );
 
