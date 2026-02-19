@@ -92,15 +92,15 @@ public class SleepController implements SleepControllerDocs {
         ));
     }
 
-    @PostMapping("/goal")
-    public ResponseEntity<ApiResponse<SleepGoalResponse>> createSleepGoal(
-            @RequestBody SleepGoalRequest request,
-            @AuthenticationPrincipal Long memberId
-    ){
-        return ResponseEntity.ok(ApiResponse.onSuccess(
-                GeneralSuccessCode.CREATED,sleepService.createSleep(request, memberId)
-        ));
-    }
+//    @PostMapping("/goal")
+//    public ResponseEntity<ApiResponse<SleepGoalResponse>> createSleepGoal(
+//            @RequestBody SleepGoalRequest request,
+//            @AuthenticationPrincipal Long memberId
+//    ){
+//        return ResponseEntity.ok(ApiResponse.onSuccess(
+//                GeneralSuccessCode.CREATED,sleepService.createSleep(request, memberId)
+//        ));
+//    }
 
     @PutMapping("/goal")
     public ResponseEntity<ApiResponse<SleepGoalResponse>> settingSleepGoal(

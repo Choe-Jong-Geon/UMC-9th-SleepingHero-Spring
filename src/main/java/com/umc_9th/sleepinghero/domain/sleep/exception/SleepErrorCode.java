@@ -31,9 +31,9 @@ public enum SleepErrorCode implements BaseErrorCode {
     SLEEP_FEEDBACK_ALREADY_EXISTS(HttpStatus.CONFLICT,
             "SLEEP409_2",
             "해당 리뷰에 대한 피드백이 이미 존재합니다."),
-    SLEEP_GOAL_ALREADY_EXISTS(HttpStatus.CONFLICT,
+    SLEEP_GOAL_DUPLICATE(HttpStatus.CONFLICT,
             "SLEEP409_3",
-            "해당 유저의 목표 취침시간이 이미 존재합니다."),
+            "해당 유저의 수면 목표가 이미 존재합니다."),
 
     SLEEP_GOAL_NOT_FOUND(HttpStatus.NOT_FOUND,
             "SLEEP404_2",

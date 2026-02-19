@@ -54,14 +54,14 @@ public interface SleepControllerDocs {
             Long memberId
     );
 
-    @Operation(
-            summary = "목표 수면 시간 생성",
-            description = "사용자가 원하는 수면 시간을 생성합니다."
-    )
-    ResponseEntity<ApiResponse<SleepGoalResponse>> createSleepGoal(
-            SleepGoalRequest request,
-            Long memberId
-    );
+//    @Operation(
+//            summary = "목표 수면 시간 생성",
+//            description = "사용자가 원하는 수면 시간을 생성합니다."
+//    )
+//    ResponseEntity<ApiResponse<SleepGoalResponse>> createSleepGoal(
+//            SleepGoalRequest request,
+//            Long memberId
+//    );
 
     @Operation(
             summary = "목표 수면 시간 수정",

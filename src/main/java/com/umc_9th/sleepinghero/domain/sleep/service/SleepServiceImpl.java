@@ -142,41 +142,23 @@ public class SleepServiceImpl implements SleepService {
         );
     }
 
-    @Override
     @Transactional
     public SleepGoalResponse settingSleep(SleepGoalRequest request, Long memberId) {
-
-        validateMember(memberId);
-
-        System.out.println(memberId);
-
-        SleepGoal goal = getOrThrowGoal(memberId);
-            goal.changeSleepTime(request);
-
-        return new SleepGoalResponse(
-                goal.getSleepTime(),
-                goal.getWakeTime(),
-                SleepTimeCalculator.durationMinutes(goal.getSleepTime(),goal.getWakeTime())
-        );
-    }
-
-    @Override
-    public SleepGoalResponse createSleep(SleepGoalRequest request, Long memberId) {
-
         Member member = getOrThrowMember(memberId);
 
-        validateSleepGoal(memberId);
-
-        SleepGoal goal = SleepGoal.builder()
-                .sleepTime(request.sleepTime())
-                .wakeTime(request.wakeTime())
-                .nonSleepStreak(0)
-                .currentStreak(0)
-                .bestStreak(0)
-                .member(member)
-                .build();
-
-        sleepGoalRepository.save(goal);
+        SleepGoal goal = sleepGoalRepository.findByMemberId(memberId)
+                .map(existingGoal -> {
+                    existingGoal.changeSleepTime(request);
+                    return existingGoal;
+                })
+                .orElseGet(() -> {
+                    SleepGoal newGoal = SleepGoal.builder()
+                            .sleepTime(request.sleepTime())
+                            .wakeTime(request.wakeTime())
+                            .member(member)
+                            .build();
+                    return sleepGoalRepository.save(newGoal);
+                });
 
         return new SleepGoalResponse(
                 goal.getSleepTime(),
@@ -184,6 +166,31 @@ public class SleepServiceImpl implements SleepService {
                 SleepTimeCalculator.durationMinutes(goal.getSleepTime(),goal.getWakeTime())
         );
     }
+
+//    @Override
+//    public SleepGoalResponse createSleep(SleepGoalRequest request, Long memberId) {
+//
+//        Member member = getOrThrowMember(memberId);
+//
+//        validateSleepGoal(memberId);
+//
+//        SleepGoal goal = SleepGoal.builder()
+//                .sleepTime(request.sleepTime())
+//                .wakeTime(request.wakeTime())
+//                .nonSleepStreak(0)
+//                .currentStreak(0)
+//                .bestStreak(0)
+//                .member(member)
+//                .build();
+//
+//        sleepGoalRepository.save(goal);
+//
+//        return new SleepGoalResponse(
+//                goal.getSleepTime(),
+//                goal.getWakeTime(),
+//                SleepTimeCalculator.durationMinutes(goal.getSleepTime(),goal.getWakeTime())
+//        );
+//    }
 
     @Override
     public long testRecord(Long memberId) {
@@ -284,9 +291,11 @@ public class SleepServiceImpl implements SleepService {
         }
     }
 
-    private void validateSleepGoal(Long memberId) {
-        if (sleepGoalRepository.existsByMemberId(memberId))
-            throw new GeneralException(SleepErrorCode.SLEEP_GOAL_ALREADY_EXISTS);
+    private boolean validateSleepGoal(Long memberId) {
+        long count = sleepGoalRepository.countByMemberId(memberId);
+        if (count > 1)
+            throw new GeneralException(SleepErrorCode.SLEEP_GOAL_DUPLICATE);
+        else return count == 1;
     }
 
     private void validateSleepStatus(Member member) {

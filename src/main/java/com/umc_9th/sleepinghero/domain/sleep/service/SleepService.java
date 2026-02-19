@@ -18,5 +18,5 @@ public interface SleepService {
     long testRecord(Long memberId);
 
     SleepGoalResponse settingSleep(SleepGoalRequest request, Long memberId);
-    SleepGoalResponse createSleep(SleepGoalRequest request, Long memberId);
+//    SleepGoalResponse createSleep(SleepGoalRequest request, Long memberId);
 }
