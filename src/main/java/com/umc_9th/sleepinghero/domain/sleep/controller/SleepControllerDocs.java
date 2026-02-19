@@ -64,8 +64,8 @@ public interface SleepControllerDocs {
 //    );
 
     @Operation(
-            summary = "목표 수면 시간 수정",
-            description = "사용자가 원하는 수면 시간을 수정합니다."
+            summary = "목표 수면 시간 설정",
+            description = "사용자가 원하는 수면 시간을 설정합니다."
     )
     ResponseEntity<ApiResponse<SleepGoalResponse>> settingSleepGoal(
             SleepGoalRequest request,
